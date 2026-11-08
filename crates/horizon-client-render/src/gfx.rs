@@ -199,6 +199,7 @@ pub use hdr::Calibration as HdrCalibration;
 mod hold;
 pub use hold::WorldHold;
 pub mod block_light;
+pub mod compatibility;
 mod custom_sky;
 mod displace;
 pub mod lightning;
@@ -2455,21 +2456,7 @@ async fn open_backend(
     // (`MC_GL_KHR_shader_subgroup_*`); storage buffers in vertex shaders, clearing and
     // atomics on images: their buffers and images. Filtering 32-bit float textures: shader
     // packs' RGBA32F buffers, which GL filters and mipmaps. Count draws: GPU culling's (`gpu_culling`).
-    let features = timing::GpuTimer::features(&adapter)
-        | cull::Cull::features(&adapter)
-        | oit::features(&adapter)
-        | (adapter.features()
-            & (wgpu::Features::INDIRECT_FIRST_INSTANCE
-                | wgpu::Features::MULTI_DRAW_INDIRECT_COUNT
-                | wgpu::Features::MAPPABLE_PRIMARY_BUFFERS
-                | wgpu::Features::TEXTURE_FORMAT_16BIT_NORM
-                | wgpu::Features::TEXTURE_ADAPTER_SPECIFIC_FORMAT_FEATURES
-                | wgpu::Features::RG11B10UFLOAT_RENDERABLE
-                | wgpu::Features::SUBGROUP
-                | wgpu::Features::VERTEX_WRITABLE_STORAGE
-                | wgpu::Features::CLEAR_TEXTURE
-                | wgpu::Features::TEXTURE_ATOMIC
-                | wgpu::Features::FLOAT32_FILTERABLE));
+    let features = compatibility::device_features(&adapter);
     let driver = format!("{} {}", info.driver, info.driver_info);
     startup_step(format_args!(
         "requesting the device (driver {}) with features [{features}] and the adapter's \
@@ -4027,18 +4014,7 @@ impl Renderer {
             bind_group_layouts: &[Some(&entity_bindings), Some(&static_entity_bindings)],
             ..Default::default()
         });
-        let cloud_bindings = kept.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
-            label: Some("Cloud bindings"),
-            entries: &[entry(
-                0,
-                wgpu::ShaderStages::VERTEX,
-                wgpu::BindingType::Buffer {
-                    ty: wgpu::BufferBindingType::Uniform,
-                    has_dynamic_offset: false,
-                    min_binding_size: None,
-                },
-            )],
-        });
+        let cloud_bindings = kept.create_bind_group_layout(&compatibility::cloud_layout());
         let cloud_uniform = device.create_buffer(&wgpu::BufferDescriptor {
             label: Some("Cloud transforms and colors"),
             size: std::mem::size_of::<crate::clouds::Uniform>() as u64,
@@ -7593,35 +7569,16 @@ impl Renderer {
     /// terrain's in the pack's block atlas (made here when missing; none when it does not fit).
     pub fn pack_inputs(&mut self) -> horizon_shaders::GameInputs {
         let terrain = self.pack_terrain_inputs();
-        // A geometry stage reads flat draws' vertices itself, through their index buffer.
-        let terrain_geometry = terrain
-            .clone()
-            .filter(|_| self.pack_terrain_flat)
-            .map(|mut inputs| {
-                inputs.declarations.push_str(
-                    "layout(set = 5, binding = 0) readonly buffer HzIndices { uint hz_indices[]; };\n",
-                );
-                horizon_shaders::GeometryInputs {
-                    inputs,
-                    pull: pack_atlas::PULL.to_owned(),
-                    index: "hz_indices[@]".to_owned(),
-                }
-            });
-        horizon_shaders::GameInputs {
-            terrain_parts: terrain
-                .as_ref()
-                .map(|t| pack_atlas::terrain_parts(t, &self.pack_lava_layers)),
-            terrain,
-            terrain_geometry,
-            entity_geometry: Some(pack_entities::geometry_inputs()),
-            sky: Some(pack_sky::inputs()),
-            celestial: Some(pack_sky::celestial_inputs()),
-            entities: Some(pack_entities::inputs()),
-            clouds: Some(pack_entities::cloud_inputs()),
-            weather: Some(pack_weather::inputs()),
-            lines: Some(pack_lines::inputs()),
-            hand: Some(pack_hand::inputs()),
-        }
+        compatibility::game_inputs(terrain, self.pack_terrain_flat, &self.pack_lava_layers)
+    }
+
+    pub fn shader_compat_identity(&self) -> String {
+        format!(
+            "{:?}/{:?}/{:?}",
+            self.adapter.get_info(),
+            self.device.features(),
+            self.device.limits()
+        )
     }
 
     fn pack_terrain_inputs(&mut self) -> Option<horizon_shaders::GbuffersInputs> {
