@@ -1,0 +1,42 @@
+name: shader compatibility experimental release
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: shader-compat-release
+  cancel-in-progress: false
+jobs:
+  windows:
+    if: github.repository == 'TheApple05/horizon-shader-compat' && github.ref == 'refs/heads/main'
+    runs-on: windows-latest
+    timeout-minutes: 60
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt
+      - run: cargo fmt -p horizon-shaders -p horizon-shader-api -p horizon-client-render -p horizon-client -- --check
+      - run: cargo test --locked -p horizon-shaders -p horizon-shader-api
+      - run: cargo test --locked -p horizon-client-render --bin horizon-shader-compat
+      - run: cargo build --locked --profile fast -p horizon-client --bin horizon-client -p horizon-client-lib --bin horizon-ctl -p horizon-client-render --bin horizon-shader-compat
+      - run: python tools/package_shader_compat.py --bin-dir target/fast --out .local/shader-compat-release
+      - uses: actions/upload-artifact@v7
+        with:
+          name: shader-compat-windows-${{ github.sha }}
+          path: .local/shader-compat-release/*
+          if-no-files-found: error
+      - name: Publish an immutable experimental revision
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SOURCE_REVISION: ${{ github.sha }}
+        shell: pwsh
+        run: |
+          $tag = 'shader-compat-experimental-' + $env:SOURCE_REVISION.Substring(0, 12)
+          $notes = "Experimental Windows x64 build of $env:SOURCE_REVISION. Includes matching source, dependency notices, BUILD.json and SHA256SUMS. Prepare your own game resources. Vulkan/OpenGL only have GPU evidence for the exact revisions and configurations recorded in docs/shader-compat; this hosted build runs CPU checks, not physical GPU/HDR checks. Broad pack fidelity and physical display HDR remain unverified."
+          $notes | Set-Content -Encoding utf8 .local/shader-compat-release-notes.txt
+          gh release create $tag .local/shader-compat-release/* --target $env:SOURCE_REVISION --prerelease --title "Shader compatibility experiment $($env:SOURCE_REVISION.Substring(0, 12))" --notes-file .local/shader-compat-release-notes.txt
