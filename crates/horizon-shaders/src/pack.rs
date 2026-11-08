@@ -22,7 +22,8 @@ pub struct Pack {
     files: Files,
     /// The values the player chose for the pack's options, applied to its sources as they are
     /// read (`options::apply`).
-    chosen: BTreeMap<String, String>,
+    pub(crate) chosen: BTreeMap<String, String>,
+    pub(crate) cache: Option<(PathBuf, String)>,
 }
 
 enum Files {
@@ -62,6 +63,11 @@ impl From<io::Error> for PackError {
 }
 
 impl Pack {
+    /// An optional private preprocessing cache; failures to read or write it never stop a pack.
+    pub fn with_cache(mut self, directory: PathBuf, context: String) -> Self {
+        self.cache = Some((directory, context));
+        self
+    }
     /// Opens a pack folder or a `.zip` archive.
     pub fn open(path: &Path) -> Result<Self, PackError> {
         let name = path
@@ -80,6 +86,7 @@ impl Pack {
             name,
             files,
             chosen: BTreeMap::new(),
+            cache: None,
         })
     }
 
@@ -90,6 +97,7 @@ impl Pack {
             name: name.to_owned(),
             files,
             chosen: BTreeMap::new(),
+            cache: None,
         })
     }
 

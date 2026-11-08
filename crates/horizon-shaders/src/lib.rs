@@ -18,6 +18,7 @@
 
 mod biomes;
 mod block_ids;
+mod cache;
 mod compatibility;
 mod condition;
 mod config;
@@ -41,6 +42,7 @@ pub use biomes::{
 pub use block_ids::BlockIds;
 pub use compatibility::{Compatibility, Outcome, Phase, ProgramOutcome};
 pub use condition::eval_condition;
+pub const COMPILER_ID: &str = env!("HORIZON_SHADER_COMPILER_ID");
 pub use config::{
     BUFFERS, Buffer, Config, Format, HALF_LIVES, Kind, SHADOW_COLORS, Shadow, buffer_index,
     draw_buffers, shadow_color,
