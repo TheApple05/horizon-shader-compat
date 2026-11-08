@@ -22,7 +22,7 @@ pub struct Pack {
     files: Files,
     /// The values the player chose for the pack's options, applied to its sources as they are
     /// read (`options::apply`).
-    chosen: BTreeMap<String, String>,
+    pub(crate) chosen: BTreeMap<String, String>,
     pub(crate) cache: Option<(PathBuf, String)>,
 }
 

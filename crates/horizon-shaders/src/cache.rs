@@ -28,8 +28,8 @@ pub(crate) fn preprocess(pack: &Pack, path: &str, macros: &Macros) -> Preprocess
         return crate::preprocess::uncached(pack, path, macros);
     };
     let key = digest(&format!(
-        "{}\0{context}\0{path}\0{macros:?}",
-        crate::COMPILER_ID
+        "{}\0{context}\0{path}\0{macros:?}\0{:?}",
+        crate::COMPILER_ID, pack.chosen
     ));
     let file = directory.join(format!("{key}.json"));
     let cached =
