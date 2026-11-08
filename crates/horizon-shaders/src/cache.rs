@@ -73,29 +73,29 @@ pub(crate) fn preprocess(pack: &Pack, path: &str, macros: &Macros) -> Preprocess
         return stage;
     }
     let (stage, dependencies) = crate::preprocess::snapshot(pack, path, macros);
-    if stage.diagnostics.is_empty() {
-        if let Some(dependencies) = dependencies {
-            let cached = Cached {
-                key: key.clone(),
-                stage_hash: digest(
-                    &serde_json::to_string(&stage).expect("preprocessed data is serializable"),
-                ),
-                dependencies,
-                stage: stage.clone(),
-            };
-            if let Ok(bytes) = serde_json::to_vec(&cached)
-                && bytes.len() as u64 <= MAX_CACHE
-                && fs::create_dir_all(directory).is_ok()
-            {
-                let temporary = directory.join(format!(
-                    "{key}.{}.{}.tmp",
-                    std::process::id(),
-                    NEXT.fetch_add(1, Ordering::Relaxed)
-                ));
-                if fs::write(&temporary, bytes).is_ok() {
-                    let _ = fs::rename(&temporary, &file);
-                    let _ = fs::remove_file(temporary);
-                }
+    if stage.diagnostics.is_empty()
+        && let Some(dependencies) = dependencies
+    {
+        let cached = Cached {
+            key: key.clone(),
+            stage_hash: digest(
+                &serde_json::to_string(&stage).expect("preprocessed data is serializable"),
+            ),
+            dependencies,
+            stage: stage.clone(),
+        };
+        if let Ok(bytes) = serde_json::to_vec(&cached)
+            && bytes.len() as u64 <= MAX_CACHE
+            && fs::create_dir_all(directory).is_ok()
+        {
+            let temporary = directory.join(format!(
+                "{key}.{}.{}.tmp",
+                std::process::id(),
+                NEXT.fetch_add(1, Ordering::Relaxed)
+            ));
+            if fs::write(&temporary, bytes).is_ok() {
+                let _ = fs::rename(&temporary, &file);
+                let _ = fs::remove_file(temporary);
             }
         }
     }
