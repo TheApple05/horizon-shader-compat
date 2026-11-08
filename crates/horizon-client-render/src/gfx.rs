@@ -7359,6 +7359,17 @@ impl Renderer {
             _ => None,
         }
     }
+    /// Active GLSL outcomes for tools; compilation evidence remains separate from scene checks.
+    pub fn shader_pack_compatibility(&self) -> Option<&horizon_shaders::Compatibility> {
+        self.pack_post
+            .as_ref()?
+            .1
+            .as_ref()
+            .map(|post| &post.compatibility)
+    }
+    pub fn shader_frame_configuration(&self) -> (wgpu::TextureFormat, bool) {
+        (self.frame_format, self.hud_coverage)
+    }
     /// `screenshot-sequence`: waits (30 seconds at most) for the frame just drawn to finish on
     /// the GPU, and takes the centre depth a `shaders/` pack copied in it, which its next frame
     /// reads: that frame's, or an error, never an older one. The last frame's PNG has already
