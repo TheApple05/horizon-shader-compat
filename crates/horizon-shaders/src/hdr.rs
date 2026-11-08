@@ -82,7 +82,7 @@ impl HdrContract {
         Ok(format!("{:x}", hash.finalize()))
     }
 
-    pub(crate) fn fragment() -> Preprocessed {
+    pub fn fragment() -> Preprocessed {
         let code = "uniform sampler2D colortex0;\nuniform float viewWidth;\nuniform float viewHeight;\nvoid main(){\nvec4 scene=texture2D(colortex0,gl_FragCoord.xy/vec2(viewWidth,viewHeight));\ngl_FragColor=vec4(pow(max(scene.rgb,vec3(0.0)),vec3(1.0/2.2)),scene.a);\n}\n";
         Preprocessed {
             code: code.into(),

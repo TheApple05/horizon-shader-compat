@@ -193,6 +193,14 @@ fn convert(args: &Arguments, pack: &Pack, macros: &Macros, report: &Value) -> Re
         }
     }
     preserve_notices(&args.input, &staging)?;
+    if args.hdr {
+        write_file(
+            &staging,
+            "generated/horizon-linear-scene-v1.json",
+            &serde_json::to_vec_pretty(&horizon_shaders::HdrContract::fragment())
+                .map_err(|e| e.to_string())?,
+        )?;
+    }
     write_file(
         &staging,
         "compatibility-report.json",
@@ -422,6 +430,15 @@ fn run(mut args: Arguments) -> Result<u8, String> {
         });
         let translation_failed = post.compatibility.failure().is_some();
         let built = context.validate(post);
+        report["semantic_changes"] = json!(
+            built
+                .compatibility
+                .programs
+                .iter()
+                .filter(|p| p.phase == Phase::Adaptation
+                    && p.outcome == horizon_shaders::Outcome::Loaded)
+                .collect::<Vec<_>>()
+        );
         report["transformations"] = json!(built.compatibility.programs.iter().filter(|p|p.phase==Phase::Translation && p.outcome==horizon_shaders::Outcome::Loaded).map(|p|json!({"program":p.requested,"operation":"production GLSL lowering and Naga semantic validation","source_map":"original preprocessor file and line map retained"})).collect::<Vec<_>>());
         passed = built.reason.is_none();
         report["outcomes"] = serde_json::to_value(&built.compatibility).unwrap();
