@@ -7733,19 +7733,12 @@ impl Renderer {
     /// (subgroups, when it has them), and the vendor, renderer and mipmap levels
     /// (`Macros::define_renderer`).
     pub fn define_pack_macros(&self, macros: &mut horizon_shaders::Macros) {
-        macros.define_renderer(self.mipmaps);
-        if self.device.features().contains(wgpu::Features::SUBGROUP) {
-            for ext in [
-                "basic",
-                "vote",
-                "arithmetic",
-                "ballot",
-                "shuffle",
-                "shuffle_relative",
-            ] {
-                macros.define(format!("MC_GL_KHR_shader_subgroup_{ext}"), "");
-            }
-        }
+        compatibility::define_macros(
+            macros,
+            self.mipmaps,
+            self.device.features(),
+            self.hdr.as_ref().is_some_and(|h| h.layered()),
+        );
     }
 
     /// The dimension the shader pack was last set for.
@@ -8342,6 +8335,7 @@ impl Renderer {
             && std::env::var_os("HORIZON_HDR_LIGHTING").is_none_or(|v| v != "0");
         if let Some(hdr) = &mut self.hdr {
             hdr.lighting = hdr_lighting && hdr.look;
+            hdr.compat_sdr = self.pack_post.as_ref().is_some_and(|p| p.1.is_some());
         }
         let hdr_gain = no_pack_hdr_gain(
             self.hdr.as_ref().is_some_and(|h| h.layered()),

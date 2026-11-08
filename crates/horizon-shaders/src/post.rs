@@ -428,6 +428,8 @@ pub enum ShadowCulling {
 
 #[derive(Clone)]
 pub struct Post {
+    pub hdr: Option<crate::HdrContract>,
+    pub hdr_output: bool,
     /// The folder the programs came from: `""` for `shaders` itself, else `world0`...
     pub folder: String,
     pub programs: Vec<PostProgram>,
@@ -666,6 +668,8 @@ pub fn load_post(
     inputs: &GameInputs,
 ) -> Post {
     let mut post = Post {
+        hdr: None,
+        hdr_output: macros.expand("HORIZON_COMPAT_HDR_OUTPUT") == "1",
         folder: folder.to_owned(),
         programs: Vec::new(),
         deferred_pre: flips(properties, "deferred_pre"),
@@ -721,6 +725,15 @@ pub fn load_post(
         compatibility: Default::default(),
     };
     let options = crate::with_options(pack, macros);
+    match crate::HdrContract::read(pack) {
+        Ok(contract) => post.hdr = contract,
+        Err(reason) => post.compatibility.record(
+            crate::HDR_CONTRACT,
+            crate::Phase::Adaptation,
+            crate::Outcome::Failed,
+            reason,
+        ),
+    }
     for feature in Macros::unsupported_features(properties) {
         post.compatibility.record(
             "shaders.properties",
@@ -1068,6 +1081,17 @@ pub fn load_post(
         inputs.entities.as_ref(),
         [&inputs.terrain_geometry, &inputs.entity_geometry].map(Option::as_ref),
     );
+    if post.hdr_output && post.hdr.is_some() {
+        let format = post.config.buffers[0].format;
+        if format.kind != crate::Kind::Float
+            || format.bits < 16
+            || format.channels < 3
+            || !post.programs.iter().any(|p| p.group == Group::Final)
+        {
+            post.compatibility.record(crate::HDR_CONTRACT, crate::Phase::Capability, crate::Outcome::Failed,
+                "linear HDR handoff requires an active final and a floating RGB scene target with at least 16 bits per channel");
+        }
+    }
     post
 }
 
@@ -1357,7 +1381,13 @@ impl Loader<'_> {
             return self.load_geometry(name, group, &vsh, &gsh, &fsh, &inputs);
         }
         let vertex = self.preprocess(&vsh);
-        let fragment = self.preprocess(&fsh);
+        let mut fragment = self.preprocess(&fsh);
+        if group == Group::Final && self.post.hdr_output && self.post.hdr.is_some() {
+            self.post.config.read(&fragment);
+            fragment = crate::HdrContract::fragment();
+            self.post.compatibility.record(&name, crate::Phase::Adaptation, crate::Outcome::Loaded,
+                "explicit linear colortex0 handoff: replace final tone mapping with gamma storage; Horizon owns display tone mapping, pack owns exposure and alpha");
+        }
         self.post
             .compatibility
             .preprocessing(&name, &[&vertex, &fragment]);

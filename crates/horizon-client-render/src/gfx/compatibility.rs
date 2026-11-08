@@ -139,12 +139,17 @@ impl ValidationContext {
             weather: true,
             hand: true,
         };
+        let hdr_output = post.hdr_output;
         match pack_post::PackPost::new_checked(
             &self.device,
             &self.queue,
             &self.adapter,
             post,
-            wgpu::TextureFormat::Rgba8Unorm,
+            if hdr_output {
+                wgpu::TextureFormat::Rgba16Float
+            } else {
+                wgpu::TextureFormat::Rgba8Unorm
+            },
             world,
             &Default::default(),
         ) {
@@ -220,5 +225,30 @@ pub(super) fn game_inputs(terrain: Option<GbuffersInputs>, flat: bool, lava: &[u
         weather: Some(pack_weather::inputs()),
         lines: Some(pack_lines::inputs()),
         hand: Some(pack_hand::inputs()),
+    }
+}
+
+/// The same compiler capabilities for game selection and standalone validation.
+pub fn define_macros(
+    macros: &mut horizon_shaders::Macros,
+    mipmaps: u32,
+    features: wgpu::Features,
+    hdr: bool,
+) {
+    macros.define_renderer(mipmaps);
+    if hdr {
+        macros.define("HORIZON_COMPAT_HDR_OUTPUT", "1");
+    }
+    if features.contains(wgpu::Features::SUBGROUP) {
+        for ext in [
+            "basic",
+            "vote",
+            "arithmetic",
+            "ballot",
+            "shuffle",
+            "shuffle_relative",
+        ] {
+            macros.define(format!("MC_GL_KHR_shader_subgroup_{ext}"), "");
+        }
     }
 }

@@ -2523,6 +2523,22 @@ impl PackPost {
             snorm_format(f, features, adapter)
                 .unwrap_or_else(|| target_format(f, features, adapter))
         });
+        if post.hdr_output
+            && post.hdr.is_some()
+            && (screen != wgpu::TextureFormat::Rgba16Float
+                || !matches!(
+                    formats[0],
+                    wgpu::TextureFormat::Rgba16Float | wgpu::TextureFormat::Rgba32Float
+                ))
+        {
+            post.compatibility.record(horizon_shaders::HDR_CONTRACT, horizon_shaders::Phase::Capability,
+                horizon_shaders::Outcome::Failed, "HDR scene handoff requires floating scene and presentation targets on the selected adapter");
+            return Err(Refused {
+                reason: "floating HDR handoff is unavailable".into(),
+                notes: post.notes,
+                compatibility: post.compatibility,
+            });
+        }
         let sky_clear = Some(&post.config.buffers[0])
             .filter(|b| b.clear)
             .and_then(|b| b.clear_color);

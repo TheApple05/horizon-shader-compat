@@ -8,6 +8,140 @@ use std::{
 };
 use wgpu::{TextureFormat as T, util::DeviceExt};
 
+#[test]
+#[ignore = "requires an explicitly selected Vulkan or OpenGL adapter"]
+fn explicit_hdr_handoff_retains_scene_range_and_pack_alpha() {
+    use crate::gfx::hdr::{
+        Hdr, Output,
+        tests::{fill, texel},
+    };
+    let gpu = Gpu::new().expect("host GPU required");
+    let color = gpu.texture(T::Rgba8Unorm);
+    let depth = gpu.texture(T::Depth32Float);
+    let hud = HudBatch::new(SIZE);
+    let frame = fixture_frame(&hud);
+    let path =
+        Path::new(env!("CARGO_MANIFEST_DIR")).join("../horizon-shaders/tests/packs/compat-hdr");
+    let pack = horizon_shaders::Pack::open(&path).unwrap();
+    for enabled in [false, true, false] {
+        let mut macros = horizon_shaders::Macros::standard();
+        if enabled {
+            macros.define("HORIZON_COMPAT_HDR_OUTPUT", "1");
+        }
+        let (properties, _) = horizon_shaders::read_properties(&pack, &mut macros);
+        let post = horizon_shaders::load_post(&pack, "", &properties, &macros, &Default::default());
+        let mut post = PackPost::new_checked(
+            &gpu.device,
+            &gpu.queue,
+            &gpu.adapter,
+            post,
+            T::Rgba16Float,
+            World {
+                atlas: None,
+                sprite_rects: &[],
+                material_maps: None,
+                lightmap: color.clone(),
+                terrain: None,
+                block_ids: &[],
+                celestial: None,
+                gui_size: SIZE,
+                clouds: None,
+                weather: false,
+                hand: false,
+            },
+            &Default::default(),
+        )
+        .unwrap();
+        let mut hdr = Hdr::new(
+            &gpu.device,
+            &gpu.queue,
+            T::Rgba16Float,
+            Output::ScRgb,
+            enabled,
+        );
+        // Read the production scene attachment directly without changing the fixture's source.
+        post.copied |= 1;
+        hdr.paper_white = 80.0;
+        hdr.peak = 800.0;
+        hdr.black = 0.0;
+        hdr.compat_sdr = true;
+        hdr.lighting = false;
+        let screen = hdr.frame(&gpu.device, SIZE);
+        let screen_view = screen.create_view(&Default::default());
+        gpu.clear(&color, &depth, 0.3);
+        let mut encoder = gpu.device.create_command_encoder(&Default::default());
+        post.run(
+            &gpu.device,
+            &gpu.queue,
+            &mut encoder,
+            &color,
+            &depth,
+            &screen_view,
+            &frame,
+            &frame.pack,
+            SIZE,
+            SIZE,
+            &[],
+            &mut |_, _, _, _| {},
+        );
+        let encoded = texel(&gpu.device, &gpu.queue, encoder, &screen);
+        let linear: [f32; 3] = if enabled {
+            [4.0, 1.0, 0.25]
+        } else {
+            [0.8, 0.5, 0.2]
+        };
+        for (got, expected) in encoded[..3].iter().zip(linear) {
+            assert!(
+                (got.powf(2.2) - expected).abs() < 0.008,
+                "{enabled}: {encoded:?}"
+            );
+        }
+        assert!(
+            (encoded[3] - 0.375).abs() < 0.001,
+            "pack alpha: {encoded:?}"
+        );
+        let targets = post.targets.as_ref().unwrap();
+        let scene = targets.color[0].as_ref().unwrap()[usize::from(post.main & 1 != 0)].texture();
+        let encoder = gpu.device.create_command_encoder(&Default::default());
+        let raw = texel(&gpu.device, &gpu.queue, encoder, scene);
+        assert_eq!(raw, [4.0, 1.0, 0.25, 0.375]);
+        hdr.begin(&gpu.queue, true);
+        let output = gpu.texture(T::Rgba16Float);
+        let mut encoder = gpu.device.create_command_encoder(&Default::default());
+        if let Some(view) = hdr.coverage_view() {
+            crate::gfx::hud_coverage::clear(&mut encoder, &view);
+        }
+        hdr.tonemap(&mut encoder, None);
+        hdr.keep_world(&mut encoder, None);
+        hdr.present(&gpu.queue, &mut encoder, output.texture(), true, None);
+        let presented = texel(&gpu.device, &gpu.queue, encoder, output.texture());
+        for (got, expected) in presented[..3].iter().zip(linear) {
+            assert!(
+                (got - expected).abs() < 0.012,
+                "presentation {enabled}: {presented:?}"
+            );
+        }
+        eprintln!(
+            "COMPAT_HDR enabled={enabled} raw={raw:?} encoded={encoded:?} scrgb={presented:?}"
+        );
+        if enabled {
+            let mut encoder = gpu.device.create_command_encoder(&Default::default());
+            fill(&mut encoder, hdr.hud().unwrap(), [1.0; 4]);
+            fill(
+                &mut encoder,
+                hdr.coverage_view().unwrap().texture(),
+                [1.0; 4],
+            );
+            hdr.present(&gpu.queue, &mut encoder, output.texture(), true, None);
+            let ui = texel(&gpu.device, &gpu.queue, encoder, output.texture());
+            assert!(
+                ui[..3].iter().all(|v| (v - 1.0).abs() < 0.005),
+                "HUD white: {ui:?}"
+            );
+        }
+    }
+}
+
 fn pack(extra: Option<(&str, &str)>, gain: &str) -> horizon_shaders::Pack {
     let root = Path::new(env!("CARGO_MANIFEST_DIR"))
         .join("../horizon-shaders/tests/packs/compat-baseline");

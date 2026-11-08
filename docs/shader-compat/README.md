@@ -41,6 +41,9 @@ Selection in the game already uses conversion automatically. Optional CLI
 arguments are `--dimension minecraft:the_nether`, `--profile <name>`, `--option GAIN=2` and
 `--cache <directory>`. Mipmap macros use level 4 in standalone validation.
 Explicit options override values selected by a profile.
+`--hdr` validates the explicit [linear scene handoff](hdr-contract.md); packs
+without a declaration are refused for that request. Game and CLI use the same
+adapter-derived compiler feature macros.
 Conversion bakes selected options into a separate compatibility pack and retains
 generated preprocessing/source-map records. Original inputs are never modified.
 Root license/notice files are copied; SOURCE.json identifies the unchanged original.
@@ -81,5 +84,6 @@ the documented provenance rules.
 Keep changes small and testable, merge fork PRs after their checks pass, and merge
 upstream changes through the same baseline controls. Inherited publishing,
 scheduled and self-hosted workflows are disabled on this dedicated repository.
-HDR and full-pack visual compatibility remain separate milestones; floating-point
-intermediates alone are not proof of monitor HDR output.
+The original HDR fixture has verified float readback and offscreen scRGB output.
+Full-pack visual compatibility and physical HDR display output require separate
+evidence; see the [HDR contract](hdr-contract.md).
