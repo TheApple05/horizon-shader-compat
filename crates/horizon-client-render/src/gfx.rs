@@ -7400,6 +7400,11 @@ impl Renderer {
         label: String,
         started: std::time::Instant,
     ) {
+        let on_render_thread = self.info.backend == wgpu::Backend::Gl;
+        if on_render_thread {
+            // GLES pipeline creation and frame submission share one thread-bound context.
+            self.land_frame();
+        }
         let device = self.device.clone();
         let queue = self.queue.clone();
         let adapter = self.adapter.clone();
@@ -7471,16 +7476,21 @@ impl Renderer {
             )
         };
         // A pack is not the game's code: a panic building it turns the pack off (#3525).
-        let thread = std::thread::Builder::new()
-            .name("Shader pack".into())
-            .spawn(move || crate::crash::contain(build));
+        let thread = if on_render_thread {
+            Ok(PackBuild::Ready(Box::new(crate::crash::contain(build))))
+        } else {
+            std::thread::Builder::new()
+                .name("Shader pack".into())
+                .spawn(move || crate::crash::contain(build))
+                .map(PackBuild::Background)
+        };
         match thread {
             Ok(thread) => {
                 // The last pack doesn't draw this dimension meanwhile.
                 self.pack_post = None;
                 self.pack_loading = Some(PackLoading {
                     dimension,
-                    thread,
+                    build: thread,
                     label,
                     started,
                     _cancel: CancelOnDrop(cancel),
@@ -7506,11 +7516,16 @@ impl Renderer {
         std::time::Instant,
         std::result::Result<Option<(Vec<String>, Vec<String>)>, pack_post::Refused>,
     )> {
-        if !self.pack_loading.as_ref()?.thread.is_finished() {
+        if matches!(&self.pack_loading.as_ref()?.build, PackBuild::Background(thread) if !thread.is_finished())
+        {
             return None;
         }
         let loading = self.pack_loading.take()?;
-        let built = match loading.thread.join() {
+        let finished = match loading.build {
+            PackBuild::Background(thread) => thread.join(),
+            PackBuild::Ready(result) => Ok(*result),
+        };
+        let built = match finished {
             Ok(Ok(built)) => built,
             Ok(Err(panic)) => Err(pack_post::Refused {
                 reason: format!("building it panicked: {panic}"),
@@ -15725,12 +15740,29 @@ struct PackLoading {
     dimension: i32,
     /// Held to be dropped with it: that cancels the build.
     _cancel: CancelOnDrop,
-    #[allow(clippy::type_complexity)]
-    thread: std::thread::JoinHandle<
-        std::result::Result<std::result::Result<pack_post::PackPost, pack_post::Refused>, String>,
-    >,
+    build: PackBuild,
     label: String,
     started: std::time::Instant,
+}
+
+#[allow(clippy::type_complexity)]
+enum PackBuild {
+    Background(
+        std::thread::JoinHandle<
+            std::result::Result<
+                std::result::Result<pack_post::PackPost, pack_post::Refused>,
+                String,
+            >,
+        >,
+    ),
+    Ready(
+        Box<
+            std::result::Result<
+                std::result::Result<pack_post::PackPost, pack_post::Refused>,
+                String,
+            >,
+        >,
+    ),
 }
 
 /// Sets its flag when dropped: `PackLoading`'s cancel, which `PackPost::new` checks per program.
