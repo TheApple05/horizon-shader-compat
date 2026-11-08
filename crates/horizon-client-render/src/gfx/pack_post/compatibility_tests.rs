@@ -176,6 +176,39 @@ fn complete_chain_options_and_failure_recovery() {
             build(pack(None, "1"), dimension).is_ok(),
             "editing a failed pack permits recovery"
         );
+        let mut depth_only = build(
+            pack(
+                Some((
+                    "gbuffers_terrain.fsh",
+                    "#version 120\n/* DRAWBUFFERS:N */\nvoid main(){gl_FragDepth=0.25;}",
+                )),
+                "1",
+            ),
+            dimension,
+        )
+        .unwrap();
+        gpu.clear(&color, &depth, 0.3);
+        let pixels = gpu.render(
+            &mut depth_only,
+            &color,
+            &depth,
+            &frame,
+            &mut |pass, list, _, _| {
+                if list == TerrainList::Solid {
+                    pass.set_vertex_buffer(0, vertices.slice(..));
+                    pass.draw(0..6, 0..1);
+                }
+            },
+        );
+        assert!(
+            pixels.iter().all(|p| p[1].abs_diff(64) <= 1),
+            "depth-only: {:?}",
+            pixels[0]
+        );
+        eprintln!(
+            "COMPAT_DEPTH_ONLY dimension={dimension} expected_depth=0.25 first={:?}",
+            pixels[0]
+        );
     }
 }
 
