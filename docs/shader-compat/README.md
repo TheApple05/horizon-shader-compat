@@ -70,6 +70,18 @@ WGPU_BACKEND=vulkan cargo test --locked -p horizon-client-render --lib complete_
 WGPU_BACKEND=gl cargo test --locked -p horizon-client-render --lib complete_chain_options_and_failure_recovery -- --ignored --nocapture --test-threads=1
 ```
 
+Exercise the live game context as well as the headless pipeline checker:
+
+```sh
+python tools/shader_compat_game.py --bin-dir target/fast --resources <prepared-26.3-directory> --backend gl --out .local/live-gl
+```
+
+Use `--pack <unchanged-zip>` and private output storage for third-party inputs.
+OpenGL pack pipelines are built serially on the render thread after outstanding
+frame submission completes. Large initial compiles pause rendering on that backend;
+Vulkan retains background parallel compilation. This avoids the observed Windows
+GL context timeout when shader compilation competed with frame submission.
+
 On PowerShell, set `$env:WGPU_BACKEND='vulkan'` or `'gl'` before the command.
 The capability-refusal control additionally requires
 `HORIZON_SHADER_PACK_WITHOUT=compute` or `fragment-storage` and the test filter
