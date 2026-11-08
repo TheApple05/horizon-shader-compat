@@ -152,8 +152,7 @@ fn output_path(input: &Path, out: &Path) -> Result<PathBuf, String> {
     let folded_input = input.to_string_lossy().to_lowercase();
     let folded_output = output.to_string_lossy().to_lowercase();
     if folded_output == folded_input
-        || (input.is_dir()
-            && folded_output.starts_with(&(folded_input + std::path::MAIN_SEPARATOR_STR)))
+        || (input.is_dir() && Path::new(&folded_output).starts_with(Path::new(&folded_input)))
     {
         return Err("output overlaps the input pack".into());
     }
@@ -185,7 +184,7 @@ fn check_cache_path(input: &Path, cache: &Path) -> Result<(), String> {
     }
     let source = input.to_string_lossy().to_lowercase();
     let cache = resolved.to_string_lossy().to_lowercase();
-    if cache == source || cache.starts_with(&(source + std::path::MAIN_SEPARATOR_STR)) {
+    if Path::new(&cache).starts_with(Path::new(&source)) {
         return Err("cache must stay outside the original pack directory".into());
     }
     Ok(())
