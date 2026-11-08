@@ -6,7 +6,7 @@ use wgpu::{TextureFormat as T, util::DeviceExt};
 pub(super) const SIZE: [u32; 2] = [16, 16];
 
 pub(super) struct Gpu {
-    adapter: wgpu::Adapter,
+    pub(super) adapter: wgpu::Adapter,
     pub(super) device: wgpu::Device,
     pub(super) queue: wgpu::Queue,
 }
@@ -153,7 +153,7 @@ impl Gpu {
             depth,
             &screen,
             frame,
-            &Default::default(),
+            &frame.pack,
             SIZE,
             SIZE,
             &[],

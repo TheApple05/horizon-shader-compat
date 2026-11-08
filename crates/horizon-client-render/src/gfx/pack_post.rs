@@ -595,6 +595,7 @@ struct ShadowCacheKey {
 }
 
 pub struct PackPost {
+    pub compatibility: horizon_shaders::Compatibility,
     setup_pending: bool,
     pub notes: Vec<String>,
     passes: Vec<Pass>,
@@ -1284,6 +1285,7 @@ pub(super) struct Geometry<'a> {
 
 /// What a pack brings besides its programs: custom textures, images and storage buffers.
 struct Resources<'a> {
+    compatibility: &'a std::cell::RefCell<horizon_shaders::Compatibility>,
     textures: &'a [pack_textures::PackTexture],
     images: &'a [pack_images::PackImage],
     /// The images this device can't make.
@@ -1316,6 +1318,17 @@ struct Resources<'a> {
 }
 
 impl Resources<'_> {
+    fn failure(
+        &self,
+        name: &str,
+        phase: horizon_shaders::Phase,
+        message: impl Into<String>,
+        capability: Option<&str>,
+    ) {
+        let mut report = self.compatibility.borrow_mut();
+        report.record(name, phase, horizon_shaders::Outcome::Failed, message);
+        report.programs.last_mut().unwrap().capability = capability.map(str::to_owned);
+    }
     /// The slot of the render pipeline `job` makes: filled now, or by `compile` when the pack
     /// is laid out.
     fn render_pipeline(&self, device: &wgpu::Device, job: RenderJob) -> Slot<wgpu::RenderPipeline> {
@@ -1946,6 +1959,12 @@ fn build_pass(
     let draw = interface.draw;
     let storage = !interface.images.is_empty() || !interface.buffers.is_empty();
     if storage && !pack.gpu.fragment_storage {
+        pack.failure(
+            &p.name,
+            horizon_shaders::Phase::Capability,
+            "fragment storage operations are unavailable",
+            Some("fragment-storage"),
+        );
         notes.push(format!(
             "{}: this GPU can't write images from a fragment shader; skipped",
             p.name
@@ -1959,6 +1978,12 @@ fn build_pass(
     if p.geometry_triangles > 0
         && ((reads_indices && pack.indices.is_none()) || !pack.gpu.vertex_storage)
     {
+        pack.failure(
+            &p.name,
+            horizon_shaders::Phase::Capability,
+            "geometry emulation requires vertex storage",
+            Some("vertex-storage"),
+        );
         notes.push(format!(
             "{}: this GPU can't run a geometry stage; skipped",
             p.name
@@ -2153,6 +2178,7 @@ fn build_pass(
         Ok(created) => created,
         Err(e) => {
             notes.push(format!("{}: skipped: {e}", p.name));
+            pack.failure(&p.name, horizon_shaders::Phase::BackendCompilation, e, None);
             return None;
         }
     };
@@ -2299,6 +2325,7 @@ fn build_compute(
         Ok(created) => created,
         Err(e) => {
             notes.push(format!("{name}: skipped: {e}"));
+            pack.failure(&name, horizon_shaders::Phase::BackendCompilation, e, None);
             return None;
         }
     };
@@ -2361,6 +2388,7 @@ fn build_compute(
 pub struct Refused {
     pub reason: String,
     pub notes: Vec<String>,
+    pub compatibility: horizon_shaders::Compatibility,
 }
 
 impl Refused {
@@ -2370,6 +2398,7 @@ impl Refused {
         Self {
             reason: Self::CANCELLED.into(),
             notes,
+            compatibility: Default::default(),
         }
     }
     /// Whether the build was cancelled (another pack or dimension asked for): not the pack's
@@ -2380,6 +2409,33 @@ impl Refused {
 }
 
 impl PackPost {
+    /// The player's path: a required effect cannot silently disappear.
+    pub fn new_checked(
+        device: &wgpu::Device,
+        queue: &wgpu::Queue,
+        adapter: &wgpu::Adapter,
+        post: Post,
+        screen: wgpu::TextureFormat,
+        world: World<'_>,
+        cancel: &std::sync::atomic::AtomicBool,
+    ) -> Result<Self, Refused> {
+        if let Some(failure) = post.compatibility.failure() {
+            return Err(Refused {
+                reason: format!("{}: {}", failure.requested, failure.message),
+                notes: post.notes,
+                compatibility: post.compatibility,
+            });
+        }
+        let built = Self::new(device, queue, adapter, post, screen, world, cancel)?;
+        if let Some(failure) = built.compatibility.failure() {
+            return Err(Refused {
+                reason: format!("{}: {}", failure.requested, failure.message),
+                notes: built.notes,
+                compatibility: built.compatibility,
+            });
+        }
+        Ok(built)
+    }
     /// The shared atlas's normal and specular paged maps (`paged_maps.rs`), which the programs
     /// drawing its geometry read as `normals` and `specular`; set before the first frame (a pass's
     /// bind groups are kept once made). A missing one reads as the dummy (flat, no specular).
@@ -2407,13 +2463,15 @@ impl PackPost {
     ) -> Result<Self, Refused> {
         use std::sync::atomic::Ordering;
         let spare = (post.clone(), world.clone());
-        let (built, jobs) = Self::build(device, queue, adapter, post, screen, world, true, cancel)?;
+        let (mut built, jobs) =
+            Self::build(device, queue, adapter, post, screen, world, true, cancel)?;
         let refused = compile(device, &jobs, cancel);
         // Some pipelines may be left unmade: the pack can't draw.
         if cancel.load(Ordering::Relaxed) {
             return Err(Refused::cancelled(built.notes));
         }
         let Some((program, refused)) = refused else {
+            built.record_compiled();
             return Ok(built);
         };
         log::warn!(
@@ -2421,8 +2479,28 @@ impl PackPost {
         );
         drop((built, jobs));
         let (post, world) = spare;
-        Self::build(device, queue, adapter, post, screen, world, false, cancel)
-            .map(|(built, _)| built)
+        Self::build(device, queue, adapter, post, screen, world, false, cancel).map(
+            |(mut built, _)| {
+                built.record_compiled();
+                built
+            },
+        )
+    }
+
+    fn record_compiled(&mut self) {
+        for name in self
+            .programs()
+            .into_iter()
+            .map(str::to_owned)
+            .collect::<Vec<_>>()
+        {
+            self.compatibility.record(
+                &name,
+                horizon_shaders::Phase::BackendCompilation,
+                horizon_shaders::Outcome::Loaded,
+                "backend pipeline compiled",
+            );
+        }
     }
 
     /// `new`'s work: with `defer`, the pipelines are left to make (the jobs returned).
@@ -2468,6 +2546,7 @@ impl PackPost {
             })
         });
         let mut notes = post.notes;
+        let compatibility = std::cell::RefCell::new(post.compatibility);
         notes.extend(post.config.notes);
         let mut sizes = post.sizes;
         // The blit writes colortex0 beside the depth buffer, at the render size.
@@ -2580,6 +2659,7 @@ impl PackPost {
         });
         let stand_ins = std::cell::RefCell::new(Vec::new());
         let pack = Resources {
+            compatibility: &compatibility,
             textures: &textures,
             images: &images,
             left_out: &left_out,
@@ -2606,6 +2686,7 @@ impl PackPost {
                     Refused {
                         reason: "terrain source tables could not be allocated".into(),
                         notes: notes.clone(),
+                        compatibility: compatibility.borrow().clone(),
                     }
                 })
             })
@@ -2618,6 +2699,14 @@ impl PackPost {
             let in_shadow = p.group.shadow();
             let mut compute = std::mem::take(&mut p.compute);
             if !gpu.compute {
+                for (name, _) in &compute {
+                    pack.failure(
+                        name,
+                        horizon_shaders::Phase::Capability,
+                        "compute shaders are unavailable",
+                        Some("compute"),
+                    );
+                }
                 compute.clear();
                 p.program.as_ref()?;
             }
@@ -2629,7 +2718,8 @@ impl PackPost {
             let mut computes: Vec<Pass> = compute
                 .into_iter()
                 .filter_map(|(name, c)| {
-                    build_compute(
+                    let requested = name.clone();
+                    let built = build_compute(
                         device,
                         name,
                         group,
@@ -2639,7 +2729,16 @@ impl PackPost {
                         &mut notes,
                         &custom_names,
                         &pack,
-                    )
+                    );
+                    if built.is_none() {
+                        pack.failure(
+                            &requested,
+                            horizon_shaders::Phase::BackendCompilation,
+                            "required compute pipeline or binding could not be created",
+                            None,
+                        );
+                    }
+                    built
                 })
                 .collect();
             let mut pass = if p.program.is_none() {
@@ -2649,7 +2748,8 @@ impl PackPost {
                 computes = Vec::new();
                 last
             } else {
-                build_pass(
+                let requested = p.name.clone();
+                let built = build_pass(
                     device,
                     p,
                     if in_shadow { &shadow_space } else { &formats },
@@ -2660,7 +2760,17 @@ impl PackPost {
                     &custom_names,
                     &draws.layout,
                     &pack,
-                )?
+                );
+                let Some(built) = built else {
+                    pack.failure(
+                        &requested,
+                        horizon_shaders::Phase::BackendCompilation,
+                        "required render pipeline or binding could not be created",
+                        None,
+                    );
+                    return None;
+                };
+                built
             };
             pass.compute.append(&mut computes);
             // A pass's attachments share a size: the depth buffer's, for the passes that draw
@@ -2684,6 +2794,12 @@ impl PackPost {
                 })
             };
             if !in_shadow && group != Group::Final && written.any(apart) {
+                pack.failure(
+                    &pass.name,
+                    horizon_shaders::Phase::Capability,
+                    "attachments have incompatible sizes",
+                    Some("attachment-size"),
+                );
                 notes.push(format!(
                     "{}: writes buffers of different sizes (size.buffer); skipped",
                     pass.name
@@ -2967,6 +3083,7 @@ impl PackPost {
                     formats[0]
                 ),
                 notes,
+                compatibility: compatibility.borrow().clone(),
             });
         }
         let shadow_comp: Vec<Pass> = post
@@ -3316,6 +3433,7 @@ impl PackPost {
             .unwrap_or_default();
         let built = Self {
             notes,
+            compatibility: compatibility.take(),
             setup_pending: true,
             passes,
             terrain,
@@ -5668,6 +5786,8 @@ impl PackPost {
 mod snorm_tests;
 
 #[cfg(test)]
+mod compatibility_tests;
+#[cfg(test)]
 #[path = "pack_post/depth_test.rs"]
 mod depth_test;
 
@@ -5863,6 +5983,7 @@ mod tests {
         );
         let stand_ins = std::cell::RefCell::new(Vec::new());
         let pack = Resources {
+            compatibility: &Default::default(),
             textures: &textures,
             images: &[],
             left_out: &[],
@@ -5959,6 +6080,7 @@ mod tests {
         );
         let stand_ins = std::cell::RefCell::new(Vec::new());
         let pack = Resources {
+            compatibility: &Default::default(),
             textures: &textures,
             images: &[],
             left_out: &[],
@@ -6042,6 +6164,7 @@ mod tests {
         );
         let stand_ins = std::cell::RefCell::new(Vec::new());
         let pack = Resources {
+            compatibility: &Default::default(),
             textures: &[],
             images: &[],
             left_out: &[],
@@ -6185,6 +6308,7 @@ mod tests {
         );
         let stand_ins = std::cell::RefCell::new(Vec::new());
         let pack = Resources {
+            compatibility: &Default::default(),
             textures: &[],
             images: &[],
             left_out: &[],
