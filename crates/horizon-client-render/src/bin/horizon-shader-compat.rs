@@ -166,6 +166,31 @@ fn write_file(root: &Path, name: &str, bytes: &[u8]) -> Result<(), String> {
     fs::write(path, bytes).map_err(|e| e.to_string())
 }
 
+fn check_cache_path(input: &Path, cache: &Path) -> Result<(), String> {
+    if !input.is_dir() {
+        return Ok(());
+    }
+    let input = fs::canonicalize(input).map_err(|e| e.to_string())?;
+    let mut parent = std::path::absolute(cache).map_err(|e| e.to_string())?;
+    let mut missing = Vec::new();
+    while !parent.exists() {
+        missing.push(parent.file_name().ok_or("invalid cache path")?.to_owned());
+        if !parent.pop() {
+            return Err("invalid cache path".into());
+        }
+    }
+    let mut resolved = fs::canonicalize(parent).map_err(|e| e.to_string())?;
+    for part in missing.into_iter().rev() {
+        resolved.push(part);
+    }
+    let source = input.to_string_lossy().to_lowercase();
+    let cache = resolved.to_string_lossy().to_lowercase();
+    if cache == source || cache.starts_with(&(source + std::path::MAIN_SEPARATOR_STR)) {
+        return Err("cache must stay outside the original pack directory".into());
+    }
+    Ok(())
+}
+
 fn convert(args: &Arguments, pack: &Pack, macros: &Macros, report: &Value) -> Result<(), String> {
     let output = output_path(&args.input, args.out.as_ref().unwrap())?;
     let staging = output.with_file_name(format!(
@@ -311,6 +336,7 @@ fn run(mut args: Arguments) -> Result<u8, String> {
     if let Some(output) = &args.out {
         output_path(&args.input, output)?;
     }
+    check_cache_path(&args.input, &args.cache)?;
     let original = Pack::open(&args.input).map_err(|e| e.to_string())?;
     let source_hash = source_hash(&original)?;
     let mut unavailable = None;
@@ -516,6 +542,9 @@ mod tests {
         )
         .unwrap();
         fs::write(input.join("unrelated.txt"), "Not a notice").unwrap();
+        assert!(check_cache_path(&input, &input.join("shaders/cache/new")).is_err());
+        assert!(check_cache_path(&input, &input.join("LICENSES")).is_err());
+        assert!(check_cache_path(&input, &root.join("outside-cache")).is_ok());
         preserve_notices(&input, &output).unwrap();
         assert_eq!(
             fs::read_to_string(output.join("LICENSES/nested/component.txt")).unwrap(),
