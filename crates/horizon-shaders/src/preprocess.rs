@@ -66,6 +66,14 @@ pub fn preprocess(pack: &Pack, path: &str, macros: &Macros) -> Preprocessed {
 }
 
 pub(crate) fn uncached(pack: &Pack, path: &str, macros: &Macros) -> Preprocessed {
+    snapshot(pack, path, macros).0
+}
+
+pub(crate) fn snapshot(
+    pack: &Pack,
+    path: &str,
+    macros: &Macros,
+) -> (Preprocessed, Option<Vec<(String, String)>>) {
     let mut run = Run {
         pack,
         macros: macros.clone(),
@@ -83,7 +91,18 @@ pub(crate) fn uncached(pack: &Pack, path: &str, macros: &Macros) -> Preprocessed
         });
     }
     run.out.code = run.code.join("\n");
-    run.out
+    let dependencies = run
+        .out
+        .files
+        .iter()
+        .map(|name| {
+            Some((
+                name.clone(),
+                crate::cache::digest(run.texts.get(name)?.as_ref()?),
+            ))
+        })
+        .collect();
+    (run.out, dependencies)
 }
 
 struct Run<'p> {

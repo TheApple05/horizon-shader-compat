@@ -43,11 +43,11 @@ fn cached_stages_track_includes_options_macros_context_and_corruption() {
     assert_eq!(hit.comments, first.comments);
     fs::write(&files[0], "{broken cache").unwrap();
     assert_eq!(preprocess(&pack, "composite.fsh", &macros).code, first.code);
-    assert!(
-        fs::read_to_string(&files[0])
-            .unwrap()
-            .starts_with("{\"dependencies\":")
-    );
+    let mut corrupted: serde_json::Value =
+        serde_json::from_slice(&fs::read(&files[0]).unwrap()).unwrap();
+    corrupted["stage"]["code"] = "valid JSON with the wrong shader".into();
+    fs::write(&files[0], serde_json::to_vec(&corrupted).unwrap()).unwrap();
+    assert_eq!(preprocess(&pack, "composite.fsh", &macros).code, first.code);
     fs::write(shaders.join("value.glsl"), "#define VALUE 2 // [1 2]").unwrap();
     assert!(
         preprocess(&pack, "composite.fsh", &macros)

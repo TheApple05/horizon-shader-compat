@@ -13,11 +13,13 @@ static NEXT: AtomicU64 = AtomicU64::new(0);
 
 #[derive(Serialize, Deserialize)]
 struct Cached {
+    key: String,
+    stage_hash: String,
     dependencies: Vec<(String, String)>,
     stage: Preprocessed,
 }
 
-fn digest(text: &str) -> String {
+pub(crate) fn digest(text: &str) -> String {
     format!("{:x}", Sha256::digest(text.as_bytes()))
 }
 
@@ -42,7 +44,9 @@ pub(crate) fn preprocess(pack: &Pack, path: &str, macros: &Macros) -> Preprocess
                 return None;
             }
             let cached: Cached = serde_json::from_slice(&bytes).ok()?;
-            if cached.stage.files.first().map(String::as_str) != Some(path)
+            if cached.key != key
+                || cached.stage_hash != digest(&serde_json::to_string(&cached.stage).ok()?)
+                || cached.stage.files.first().map(String::as_str) != Some(path)
                 || cached.dependencies.len() != cached.stage.files.len()
                 || cached.dependencies.iter().zip(&cached.stage.files).any(
                     |((name, hash), file)| {
@@ -67,15 +71,14 @@ pub(crate) fn preprocess(pack: &Pack, path: &str, macros: &Macros) -> Preprocess
     if let Some(stage) = cached {
         return stage;
     }
-    let stage = crate::preprocess::uncached(pack, path, macros);
+    let (stage, dependencies) = crate::preprocess::snapshot(pack, path, macros);
     if stage.diagnostics.is_empty() {
-        let dependencies: Option<Vec<_>> = stage
-            .files
-            .iter()
-            .map(|name| Some((name.clone(), digest(&pack.read_text(name)?))))
-            .collect();
         if let Some(dependencies) = dependencies {
             let cached = Cached {
+                key: key.clone(),
+                stage_hash: digest(
+                    &serde_json::to_string(&stage).expect("preprocessed data is serializable"),
+                ),
                 dependencies,
                 stage: stage.clone(),
             };
