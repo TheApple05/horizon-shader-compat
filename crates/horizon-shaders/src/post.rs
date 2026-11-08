@@ -524,6 +524,8 @@ pub struct Post {
     pub config: Config,
     /// Programs skipped and why, as `program: message` or `file:line: message`.
     pub notes: Vec<String>,
+    /// Selected, rejected and fallback programs from the production loader.
+    pub compatibility: crate::Compatibility,
 }
 
 impl Post {
@@ -716,8 +718,18 @@ pub fn load_post(
         },
         config: Config::default(),
         notes: Vec::new(),
+        compatibility: Default::default(),
     };
     let options = crate::with_options(pack, macros);
+    for feature in Macros::unsupported_features(properties) {
+        post.compatibility.record(
+            "shaders.properties",
+            crate::Phase::Capability,
+            crate::Outcome::Failed,
+            format!("required feature {feature} is not supported"),
+        );
+        post.compatibility.programs.last_mut().unwrap().capability = Some(feature);
+    }
     for e in &properties.entries {
         if let Some(n) = e.key.strip_prefix("bufferObject.") {
             match (n.parse(), BufferObject::parse(&e.value)) {
@@ -788,7 +800,8 @@ pub fn load_post(
     let [has_solid, has_cutout] =
         [&TERRAIN_SOLID, &TERRAIN_CUTOUT].map(|chain| chain.iter().any(|n| loader.has(n)));
     let mut gbuffers = |names: &[&str], group, inputs: &GbuffersInputs| {
-        names.iter().find_map(|name| {
+        let start = loader.post.compatibility.programs.len();
+        let selected = names.iter().find_map(|name| {
             // `alphaTest.<program>` replaces the geometry's default test (OQ-23).
             let key = properties.get(&format!("alphaTest.{name}"));
             let test = key.and_then(|v| crate::AlphaTest::parse(v.trim()));
@@ -799,7 +812,13 @@ pub fn load_post(
             loader.load(name.to_string(), group, |v, f| {
                 translate_gbuffers(v, f, Target::Buffers, &inputs)
             })
-        })
+        });
+        loader.post.compatibility.resolve(
+            start,
+            names[0],
+            selected.as_ref().map(|p| p.name.as_str()),
+        );
+        selected
     };
     // The sky's parts blend as vanilla draws them (the sunset fan translucent, the stars
     // [`STARS_BLEND`], the disc and the void not at all), unless `blend.*` says otherwise. Iris 1.11.7 left exactly what
@@ -1135,7 +1154,8 @@ fn load_shadow(
     let mut load =
         |names: &[&str], inputs: Option<&GbuffersInputs>, terrain: bool, cutout: bool| {
             let inputs = inputs?;
-            names.iter().find_map(|name| {
+            let start = loader.post.compatibility.programs.len();
+            let selected = names.iter().find_map(|name| {
                 // Cutout geometry (leaves) casts the shadow of its texels only: the cutout test,
                 // unless `alphaTest.<program>` says otherwise, as for the gbuffers programs.
                 // Translucent terrain keeps no test, as gbuffers_water does.
@@ -1161,7 +1181,13 @@ fn load_shadow(
                     p.blend = blend(properties, &p.name).flatten();
                     p
                 })
-            })
+            });
+            loader.post.compatibility.resolve(
+                start,
+                names[0],
+                selected.as_ref().map(|p| p.name.as_str()),
+            );
+            selected
         };
     // `shadowTerrain`, `shadowTranslucent`, `shadowEntities` and `shadowBlockEntities` (3.2)
     // leave their part out of the shadow pass; all are on by default (OQ-19). `shadowPlayer`
@@ -1240,6 +1266,34 @@ impl Loader<'_> {
             f => format!("{f}/{name}.{ext}"),
         };
         let (vsh, fsh) = (path("vsh"), path("fsh"));
+        let authored = ["vsh", "fsh", "gsh", "csh"]
+            .iter()
+            .any(|ext| self.pack.exists(&path(ext)));
+        if authored
+            && !enabled(
+                self.properties,
+                self.folder,
+                &name,
+                &self.options,
+                &self.switches,
+            )
+        {
+            self.post.compatibility.record(
+                &name,
+                crate::Phase::Selection,
+                crate::Outcome::Disabled,
+                "disabled by pack configuration",
+            );
+            return None;
+        }
+        if self.pack.exists(&vsh) != self.pack.exists(&fsh) {
+            self.post.compatibility.record(
+                &name,
+                crate::Phase::Selection,
+                crate::Outcome::Failed,
+                "a render program requires both vertex and fragment stages",
+            );
+        }
         if group == Group::Setup || !self.pack.exists(&fsh) || !self.pack.exists(&vsh) {
             let on = enabled(
                 self.properties,
@@ -1288,6 +1342,12 @@ impl Loader<'_> {
         }
         if self.pack.exists(&path("gsh")) {
             let Some(inputs) = self.geometry.clone() else {
+                self.post.compatibility.record(
+                    &name,
+                    crate::Phase::Capability,
+                    crate::Outcome::Failed,
+                    "geometry stages require supported shadow geometry inputs",
+                );
                 self.post.notes.push(format!(
                     "{name}: uses a geometry stage (supported for the shadow pass's terrain and entities only); skipped"
                 ));
@@ -1298,6 +1358,9 @@ impl Loader<'_> {
         }
         let vertex = self.preprocess(&vsh);
         let fragment = self.preprocess(&fsh);
+        self.post
+            .compatibility
+            .preprocessing(&name, &[&vertex, &fragment]);
         let notes = &mut self.post.notes;
         let problems: Vec<String> = [&vertex, &fragment]
             .iter()
@@ -1312,6 +1375,7 @@ impl Loader<'_> {
         let program = match translate(&vertex, &fragment) {
             Ok(p) => p,
             Err(errors) => {
+                self.post.compatibility.translation(&name, &errors);
                 notes.extend(
                     errors
                         .iter()
@@ -1321,6 +1385,12 @@ impl Loader<'_> {
                 return None;
             }
         };
+        self.post.compatibility.record(
+            &name,
+            crate::Phase::Translation,
+            crate::Outcome::Loaded,
+            "translated and semantically validated",
+        );
         notes.extend(
             program
                 .notes
@@ -1460,6 +1530,9 @@ impl Loader<'_> {
         inputs: &crate::GeometryInputs,
     ) -> Option<PostProgram> {
         let stages = [vsh, gsh, fsh].map(|p| self.preprocess(p));
+        self.post
+            .compatibility
+            .preprocessing(&name, &stages.iter().collect::<Vec<_>>());
         let notes = &mut self.post.notes;
         let problems: Vec<String> = stages.iter().flat_map(diagnostics).collect();
         if !problems.is_empty() {
@@ -1472,6 +1545,7 @@ impl Loader<'_> {
             match crate::translate_geometry(vertex, geometry, fragment, inputs) {
                 Ok(p) => p,
                 Err(errors) => {
+                    self.post.compatibility.translation(&name, &errors);
                     notes.extend(
                         errors
                             .iter()
@@ -1481,6 +1555,12 @@ impl Loader<'_> {
                     return None;
                 }
             };
+        self.post.compatibility.record(
+            &name,
+            crate::Phase::Translation,
+            crate::Outcome::Loaded,
+            "geometry folded and semantically validated",
+        );
         notes.extend(
             program
                 .notes
@@ -1545,6 +1625,7 @@ impl Loader<'_> {
                 continue;
             }
             let pp = self.preprocess(&path);
+            self.post.compatibility.preprocessing(&name, &[&pp]);
             let problems = diagnostics(&pp);
             let notes = &mut self.post.notes;
             if !problems.is_empty() {
@@ -1554,6 +1635,12 @@ impl Loader<'_> {
             }
             match translate_compute(&pp) {
                 Ok(program) => {
+                    self.post.compatibility.record(
+                        &name,
+                        crate::Phase::Translation,
+                        crate::Outcome::Loaded,
+                        "compute translated and semantically validated",
+                    );
                     notes.extend(
                         program
                             .notes
@@ -1563,6 +1650,7 @@ impl Loader<'_> {
                     out.push((name, program));
                 }
                 Err(errors) => {
+                    self.post.compatibility.translation(&name, &errors);
                     notes.extend(
                         errors
                             .iter()

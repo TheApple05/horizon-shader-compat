@@ -18,6 +18,7 @@
 
 mod biomes;
 mod block_ids;
+mod compatibility;
 mod condition;
 mod config;
 mod core_shader;
@@ -38,6 +39,7 @@ pub use biomes::{
     category as biome_category, pack_id as biome_pack_id, precipitation as biome_precipitation,
 };
 pub use block_ids::BlockIds;
+pub use compatibility::{Compatibility, Outcome, Phase, ProgramOutcome};
 pub use condition::eval_condition;
 pub use config::{
     BUFFERS, Buffer, Config, Format, HALF_LIVES, Kind, SHADOW_COLORS, Shadow, buffer_index,
