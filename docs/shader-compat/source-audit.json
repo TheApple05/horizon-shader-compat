@@ -1,0 +1,412 @@
+{
+  "schema": 1,
+  "upstream_base": "42d1e6d7d77ed300fcc4d644ce1444c25356085c",
+  "policy": "MIT/upstream-compatible; original code, permitted dependencies, public documentation and eligible black-box observations only",
+  "repositories": [
+    {
+      "repository": "merenotnoonereal/Horizon-Translator",
+      "url": "https://github.com/merenotnoonereal/Horizon-Translator",
+      "branch": "main",
+      "commit": "d0e35665c9c57b799651c5c4c41ea63ee400dc28",
+      "license": "not_declared",
+      "description": "Translate Shaders and Java Fabric Mods into Rust! ",
+      "source_read": false,
+      "code_reused": false,
+      "root_license_files": [],
+      "root_components": [
+        "README.md",
+        "shader-converter"
+      ],
+      "license_file_checks": [],
+      "inputs_read": [
+        "repository metadata",
+        "root filename listing",
+        "listed root license/notice texts"
+      ],
+      "file_headers_checked": [],
+      "reuse_decision": "Excluded code reuse until an applicable license or permission is established.",
+      "reproduction_status": "Not executed against the new Horizon baseline.",
+      "relevant_files": [
+        "README.md",
+        "shader-converter"
+      ]
+    },
+    {
+      "repository": "avpbynf/vitrail-shaders",
+      "url": "https://github.com/avpbynf/vitrail-shaders",
+      "branch": "main",
+      "commit": "7a3cdcbe1dfd7e04fb2b3021ee8352d341e7647e",
+      "license": "LGPL-3.0",
+      "description": "OptiFine-format shader packs, on Minecraft's native Vulkan renderer",
+      "source_read": false,
+      "code_reused": false,
+      "root_license_files": [
+        "LICENSE",
+        "NOTICE"
+      ],
+      "root_components": [
+        "LICENSE",
+        "README.md",
+        "build.gradle"
+      ],
+      "license_file_checks": [
+        {
+          "path": "LICENSE",
+          "git_blob": "0a041280bd00a9d068f503b8ee7ce35214bd24a1",
+          "read": true
+        },
+        {
+          "path": "NOTICE",
+          "git_blob": "f712b238d242c2036ffc9a5dad19bf9d17247ccd",
+          "read": true
+        }
+      ],
+      "inputs_read": [
+        "repository metadata",
+        "root filename listing",
+        "listed root license/notice texts"
+      ],
+      "file_headers_checked": [],
+      "reuse_decision": "Excluded implementation source under upstream contribution policy; public author documentation/format facts only.",
+      "reproduction_status": "Not executed against the new Horizon baseline.",
+      "relevant_files": [
+        "LICENSE",
+        "README.md",
+        "build.gradle"
+      ]
+    },
+    {
+      "repository": "Perdume/meridian-shaders",
+      "url": "https://github.com/Perdume/meridian-shaders",
+      "branch": "main",
+      "commit": "b1a241618204ecdb899d5c459a9cee9528399aab",
+      "license": "MIT",
+      "description": "Meridian: a shader pack for Horizon (the Rust Minecraft: Java Edition) — shadow-mapped sun, clear water, stars and aurora, PBR, AO, TAA. WGSL, MIT.",
+      "source_read": false,
+      "code_reused": false,
+      "root_license_files": [
+        "LICENSE"
+      ],
+      "root_components": [
+        "LICENSE",
+        "README.md",
+        "tools"
+      ],
+      "license_file_checks": [
+        {
+          "path": "LICENSE",
+          "git_blob": "a3bef22e8eeabc1becbb58db0a4811781a702ea7",
+          "read": true
+        }
+      ],
+      "inputs_read": [
+        "repository metadata",
+        "root filename listing",
+        "listed root license/notice texts"
+      ],
+      "file_headers_checked": [],
+      "reuse_decision": "Potential permissive reference; no implementation read or reused. Any future adaptation requires relevant file-level checks first.",
+      "reproduction_status": "Not executed against the new Horizon baseline.",
+      "relevant_files": [
+        "LICENSE",
+        "README.md",
+        "tools"
+      ]
+    },
+    {
+      "repository": "IrisShaders/Iris",
+      "url": "https://github.com/IrisShaders/Iris",
+      "branch": "26.1",
+      "commit": "bff1e69cb6c5519d8745784aa9c8b92984de67e7",
+      "license": "LGPL-3.0",
+      "description": "A modern shaders mod for Minecraft compatible with existing OptiFine shader packs",
+      "source_read": false,
+      "code_reused": false,
+      "root_license_files": [
+        "LICENSE"
+      ],
+      "root_components": [
+        "LICENSE",
+        "LICENSE-DEPENDENCIES",
+        "README.md",
+        "build.gradle.kts"
+      ],
+      "license_file_checks": [
+        {
+          "path": "LICENSE",
+          "git_blob": "153d416dc8d2d60076698ec3cbfce34d91436a03",
+          "read": true
+        }
+      ],
+      "inputs_read": [
+        "repository metadata",
+        "root filename listing",
+        "listed root license/notice texts"
+      ],
+      "file_headers_checked": [],
+      "reuse_decision": "Excluded implementation source under upstream contribution policy; public author documentation/format facts only.",
+      "reproduction_status": "Not executed against the new Horizon baseline.",
+      "relevant_files": [
+        "LICENSE",
+        "LICENSE-DEPENDENCIES",
+        "README.md",
+        "build.gradle.kts"
+      ]
+    },
+    {
+      "repository": "thevoid-creations/HorizonShaders",
+      "url": "https://github.com/thevoid-creations/HorizonShaders",
+      "branch": "main",
+      "commit": "6e2b4e543279f665f307194d8d604824bdf2572c",
+      "license": "MIT",
+      "description": "Shader port for horizon rust port for minecraft",
+      "source_read": false,
+      "code_reused": false,
+      "root_license_files": [
+        "LICENSE"
+      ],
+      "root_components": [
+        "LICENSE",
+        "README.md",
+        "tools"
+      ],
+      "license_file_checks": [
+        {
+          "path": "LICENSE",
+          "git_blob": "9ed56d0494363265906c38886961a5c3927cde5e",
+          "read": true
+        }
+      ],
+      "inputs_read": [
+        "repository metadata",
+        "root filename listing",
+        "listed root license/notice texts"
+      ],
+      "file_headers_checked": [],
+      "reuse_decision": "Potential permissive reference; no implementation read or reused. Any future adaptation requires relevant file-level checks first.",
+      "reproduction_status": "Not executed against the new Horizon baseline.",
+      "relevant_files": [
+        "LICENSE",
+        "README.md",
+        "tools"
+      ]
+    },
+    {
+      "repository": "xCollateral/VulkanMod",
+      "url": "https://github.com/xCollateral/VulkanMod",
+      "branch": "dev",
+      "commit": "087ef24e58e5522dec5ccb44f279768786bfb6da",
+      "license": "LGPL-3.0",
+      "description": "Vulkan renderer mod for Minecraft.",
+      "source_read": false,
+      "code_reused": false,
+      "root_license_files": [
+        "LICENSE"
+      ],
+      "root_components": [
+        "LICENSE",
+        "README.md",
+        "build.gradle",
+        "src"
+      ],
+      "license_file_checks": [
+        {
+          "path": "LICENSE",
+          "git_blob": "0a041280bd00a9d068f503b8ee7ce35214bd24a1",
+          "read": true
+        }
+      ],
+      "inputs_read": [
+        "repository metadata",
+        "root filename listing",
+        "listed root license/notice texts"
+      ],
+      "file_headers_checked": [],
+      "reuse_decision": "Excluded implementation source under upstream contribution policy; public author documentation/format facts only.",
+      "reproduction_status": "Not executed against the new Horizon baseline.",
+      "relevant_files": [
+        "LICENSE",
+        "README.md",
+        "build.gradle",
+        "src"
+      ]
+    },
+    {
+      "repository": "Perdume/horizon-shader-mods",
+      "url": "https://github.com/Perdume/horizon-shader-mods",
+      "branch": "main",
+      "commit": "82367f9b274b50d6cd7e91ec6d056fecb8193422",
+      "license": "not_declared",
+      "description": "Unofficial native mods that make Iris/OptiFine-format shader packs work better in Horizon (Vulkan block ids, in-game shader settings, uniforms)",
+      "source_read": false,
+      "code_reused": false,
+      "root_license_files": [],
+      "root_components": [
+        "README.md",
+        "tools"
+      ],
+      "license_file_checks": [],
+      "inputs_read": [
+        "repository metadata",
+        "root filename listing",
+        "listed root license/notice texts"
+      ],
+      "file_headers_checked": [],
+      "reuse_decision": "Excluded code reuse until an applicable license or permission is established.",
+      "reproduction_status": "Not executed against the new Horizon baseline.",
+      "relevant_files": [
+        "README.md",
+        "tools"
+      ]
+    },
+    {
+      "repository": "TheApple05/Photon-Horizon",
+      "url": "https://github.com/TheApple05/Photon-Horizon",
+      "branch": "main",
+      "commit": "c8d7778267b2879fd87ec3f2d34226d80909d694",
+      "license": "MIT",
+      "description": "Standalone Photon shader for Horizon 26.3: tested Windows renderer, original shader, dedicated launcher and focused source patch.",
+      "source_read": false,
+      "code_reused": false,
+      "root_license_files": [
+        "LICENSE"
+      ],
+      "root_components": [
+        "Build-Renderer.ps1",
+        "LICENSE",
+        "README.md",
+        "licenses",
+        "renderer.patch"
+      ],
+      "license_file_checks": [
+        {
+          "path": "LICENSE",
+          "git_blob": "e959a076e9fa4b8c1fcf990b2253a935da5bb5f4",
+          "read": true
+        }
+      ],
+      "inputs_read": [
+        "repository metadata",
+        "root filename listing",
+        "listed root license/notice texts"
+      ],
+      "file_headers_checked": [],
+      "reuse_decision": "Potential permissive reference; no implementation read or reused. Any future adaptation requires relevant file-level checks first.",
+      "reproduction_status": "Not executed against the new Horizon baseline.",
+      "relevant_files": [
+        "Build-Renderer.ps1",
+        "LICENSE",
+        "README.md",
+        "licenses",
+        "renderer.patch"
+      ]
+    }
+  ],
+  "beryl": {
+    "url": "https://modrinth.com/mod/beryl",
+    "identification": "Tentative interpretation of ballaor",
+    "license": "ARR",
+    "scope": "VulkanMod-dependent pipeline with an integrated pack; not a general converter donor",
+    "decision": "No code reuse or source inspection"
+  },
+  "upstream_work": [
+    {
+      "number": 12684,
+      "url": "https://github.com/horizon-rust/horizon/pull/12684",
+      "title": "Docs: publish the shader-pack clean-room spec and provenance log",
+      "state": "closed",
+      "merged": true,
+      "draft": false,
+      "head_repository": "horizon-rust/horizon",
+      "head": "docs/cleanroom-shader-spec",
+      "head_commit": "b5fd86ea955ecc2c8178dc55458e813fff67710c",
+      "merge_commit": "dd2aa4c80871b1b358c5f8cce5ccc219b0b846e2",
+      "decision": "Already included in the pinned upstream history; do not reapply."
+    },
+    {
+      "number": 12720,
+      "url": "https://github.com/horizon-rust/horizon/pull/12720",
+      "title": "Shader packs: define no other loader's identity macros (OQ-2)",
+      "state": "closed",
+      "merged": true,
+      "draft": false,
+      "head_repository": "horizon-rust/horizon",
+      "head": "fix/no-iris-identity-macros",
+      "head_commit": "76ef5f41eed3762dd51e3ffbfd91d6cf704561bc",
+      "merge_commit": "6651840801ee43d1ef95541206cf5afff16a93da",
+      "decision": "Already included in the pinned upstream history; do not reapply."
+    },
+    {
+      "number": 12609,
+      "url": "https://github.com/horizon-rust/horizon/pull/12609",
+      "title": "Keep shader terrain attributes tied to their source block",
+      "state": "closed",
+      "merged": true,
+      "draft": false,
+      "head_repository": "gigamans442/horizon",
+      "head": "fix/terrain-source-ownership-20261108",
+      "head_commit": "af30750fe99e850525c55d131b2b5375c78568ec",
+      "merge_commit": "90d6546ecac880e772145dc092294f6c79405a75",
+      "decision": "Already included in the pinned upstream history; do not reapply."
+    },
+    {
+      "number": 12282,
+      "url": "https://github.com/horizon-rust/horizon/pull/12282",
+      "title": "HDR float frame: every shader writes light on the default lane",
+      "state": "closed",
+      "merged": true,
+      "draft": false,
+      "head_repository": "NikitaMGrimm/horizon",
+      "head": "hdr-write-light",
+      "head_commit": "6a11db7ef7fc26ce65ac580b3ce76b7a2dac0182",
+      "merge_commit": "7d084fc8aab55531214e98d0771a181582cca6ed",
+      "decision": "Already included in the pinned upstream history; do not reapply."
+    },
+    {
+      "number": 12449,
+      "url": "https://github.com/horizon-rust/horizon/pull/12449",
+      "title": "Shader packs: keep solid terrain in the compact layout",
+      "state": "open",
+      "merged": false,
+      "draft": true,
+      "head_repository": "RINNECODER/horizon",
+      "head": "up3/pack-compact-terrain",
+      "head_commit": "957ecaff5f9ebde8fe5eaa59151575369f29e8b7",
+      "merge_commit": "55ebbc077e920ca7467a10dfc459fdadeefb93b7",
+      "decision": "Track and review complete dependency chain before adoption; no patch imported."
+    },
+    {
+      "number": 12746,
+      "url": "https://github.com/horizon-rust/horizon/pull/12746",
+      "title": "HDR: an Auto setting that follows the system's HDR",
+      "state": "closed",
+      "merged": true,
+      "draft": false,
+      "head_repository": "NikitaMGrimm/horizon",
+      "head": "hdr-auto",
+      "head_commit": "31c060e41ba1f2f3918349f233ee7c6ae5b59113",
+      "merge_commit": "caac31c8df77d65c08ca9a4bad28154e55e33238",
+      "decision": "Already included in the pinned upstream history; do not reapply."
+    },
+    {
+      "number": 12835,
+      "url": "https://github.com/horizon-rust/horizon/pull/12835",
+      "title": "HDR float frame: follow the shader pack that runs, not only the one picked",
+      "state": "open",
+      "merged": false,
+      "draft": false,
+      "head_repository": "NikitaMGrimm/horizon",
+      "head": "hdr-follow",
+      "head_commit": "40d0364accbe75707ca41ed5592a854fa6d88bcd",
+      "merge_commit": "22caa7983333fe03cdd2b08f078f7685c1b32f19",
+      "decision": "Track and review complete dependency chain before adoption; no patch imported."
+    }
+  ],
+  "implementation_inputs": [
+    "Pinned Horizon source and its current contribution policy",
+    "Clean-room specification revision 1 and provenance log",
+    "Horizon renderer and patched MIT/Apache Naga/wgpu",
+    "Original synthetic GLSL and independently specified expected pixels"
+  ],
+  "foreign_implementation_code_reused": false
+}

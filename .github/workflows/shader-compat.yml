@@ -1,0 +1,26 @@
+name: shader-compat
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: shader-compat-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  cpu:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt
+      - run: cargo fmt -p horizon-shaders -p horizon-shader-api -- --check
+      - run: cargo test --locked -p horizon-shaders -p horizon-shader-api

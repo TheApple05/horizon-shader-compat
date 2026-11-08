@@ -168,3 +168,8 @@ Scores: 0 (absent), 0.25 (started), 0.5 (playable, major features missing), 0.75
 [MIT](LICENSE), for the project's original work; dependencies keep their own licences ([notices](THIRD_PARTY_NOTICES.md)). Horizon is made by [Ludovic Marie](https://lu4ovic.com) ([@ludovic111](https://github.com/ludovic111)) and [its contributors](https://github.com/horizon-rust/horizon/graphs/contributors); support it on [GitHub Sponsors](https://github.com/sponsors/ludovic111).
 
 NOT AN OFFICIAL MINECRAFT PRODUCT. NOT APPROVED BY OR ASSOCIATED WITH MOJANG OR MICROSOFT. Minecraft is a trademark of Mojang Synergies AB; its code and assets belong to Mojang and Microsoft under the [Minecraft EULA](https://www.minecraft.net/en-us/eula).
+# Horizon Shader Compat
+
+Independent shader compatibility fork. Start with [the fork guide](docs/shader-compat/README.md)
+and [source audit](docs/shader-compat/source-audit.json). Upstream Horizon documentation follows.
+
