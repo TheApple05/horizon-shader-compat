@@ -38,8 +38,9 @@ horizon-shader-compat report <new-directory>/compatibility-report.json
 ```
 
 Selection in the game already uses conversion automatically. Optional CLI
-arguments are `--dimension minecraft:the_nether`, `--option GAIN=2` and
+arguments are `--dimension minecraft:the_nether`, `--profile <name>`, `--option GAIN=2` and
 `--cache <directory>`. Mipmap macros use level 4 in standalone validation.
+Explicit options override values selected by a profile.
 Conversion bakes selected options into a separate compatibility pack and retains
 generated preprocessing/source-map records. Original inputs are never modified.
 Root license/notice files are copied; SOURCE.json identifies the unchanged original.

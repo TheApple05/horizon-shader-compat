@@ -24,3 +24,14 @@ jobs:
           components: rustfmt
       - run: cargo fmt -p horizon-shaders -p horizon-shader-api -- --check
       - run: cargo test --locked -p horizon-shaders -p horizon-shader-api
+  renderer:
+    runs-on: windows-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt
+      - run: cargo fmt -p horizon-client-render -p horizon-client -- --check
+      - run: cargo check --locked -p horizon-client -p horizon-client-render --lib --bins
+      - run: cargo test --locked -p horizon-client-render --bin horizon-shader-compat

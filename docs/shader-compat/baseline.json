@@ -1,0 +1,38 @@
+{
+  "schema": 1,
+  "upstream_base": "42d1e6d7d77ed300fcc4d644ce1444c25356085c",
+  "baseline_source_dirty": false,
+  "build": {
+    "command": "cargo build --locked --profile fast -p horizon-client --bin horizon-client -p horizon-client-lib --bin horizon-ctl -j 6",
+    "result": "passed",
+    "elapsed_seconds": 1185
+  },
+  "shader_tests": {
+    "command": "cargo test --locked -p horizon-shaders",
+    "result": "passed",
+    "real_pack_case": "ignored: no corpus configured"
+  },
+  "public_tree_history": "passed",
+  "artifacts": [
+    {
+      "file": "horizon-client.exe",
+      "sha256": "89b8e107db7b726596f21efd090b3a0d4715146afabe12316c09e8d739aadb1d",
+      "bytes": 99041792
+    },
+    {
+      "file": "horizon-ctl.exe",
+      "sha256": "c6032025f4bedae05df5e55e5cef05caa5252af1e81576de5189befadaa46da3",
+      "bytes": 1546240
+    }
+  ],
+  "hardware": {
+    "os": "Windows",
+    "gpu": "NVIDIA GeForce RTX 3090",
+    "driver": "616.92"
+  },
+  "evidence": {
+    "gpu_execution": "not_run",
+    "visual_validation": "not_run",
+    "physical_hdr": "not_run"
+  }
+}
