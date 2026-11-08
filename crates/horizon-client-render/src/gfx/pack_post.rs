@@ -2068,7 +2068,7 @@ fn build_pass(
             blend: None,
             write_mask: wgpu::ColorWrites::empty(),
         })];
-    } else if !final_pass && writes.is_empty() && !sink {
+    } else if !final_pass && writes.is_empty() && !sink && geometry.is_none() {
         notes.push(format!("{}: writes no buffer; skipped", p.name));
         return None;
     }
