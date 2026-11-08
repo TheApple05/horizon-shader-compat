@@ -7282,7 +7282,7 @@ impl Renderer {
                 weather: true,
                 hand: true,
             };
-            pack_post::PackPost::new(
+            pack_post::PackPost::new_checked(
                 &self.device,
                 &self.queue,
                 &self.adapter,
@@ -7448,7 +7448,9 @@ impl Renderer {
                 weather: true,
                 hand: true,
             };
-            pack_post::PackPost::new(&device, &queue, &adapter, pack, format, world, &cancelled)
+            pack_post::PackPost::new_checked(
+                &device, &queue, &adapter, pack, format, world, &cancelled,
+            )
         };
         // A pack is not the game's code: a panic building it turns the pack off (#3525).
         let thread = std::thread::Builder::new()
@@ -7495,10 +7497,12 @@ impl Renderer {
             Ok(Err(panic)) => Err(pack_post::Refused {
                 reason: format!("building it panicked: {panic}"),
                 notes: Vec::new(),
+                compatibility: Default::default(),
             }),
             Err(_) => Err(pack_post::Refused {
                 reason: "its thread panicked".into(),
                 notes: Vec::new(),
+                compatibility: Default::default(),
             }),
         };
         let report = self.install_shader_pack(loading.dimension, built.map(Some));

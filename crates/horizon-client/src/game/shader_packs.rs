@@ -552,10 +552,13 @@ impl Game<'_> {
             self.settings.horizon.shader_pack.clear();
             self.settings.save(&Self::options_path());
         }
-        self.system_message(Text::colored(
-            format!("Shader pack {name} could not be loaded and was turned off"),
-            0xFF5555,
-        ));
+        self.system_message(
+            Text::translate(
+                "horizon.shader_pack.failed",
+                &[Text::literal(name), Text::literal(error)],
+            )
+            .with_color(0xFF5555),
+        );
     }
 
     /// Whether the game's vignette draws: the option, unless the loaded pack turns it off.
