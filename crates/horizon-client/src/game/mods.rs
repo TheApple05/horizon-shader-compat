@@ -926,10 +926,19 @@ mod tests {
         assert_eq!(verdict(&ruby, &manifest, true), switches_on_restart);
         assert_eq!(verdict(&ruby, &manifest, false), Some(Ok(())));
         let later = std::time::SystemTime::now() + std::time::Duration::from_secs(5);
-        std::fs::File::open(&ruby)
-            .unwrap()
-            .set_modified(later)
-            .unwrap();
+        #[cfg(windows)]
+        let directory = {
+            use std::os::windows::fs::OpenOptionsExt;
+            // Windows requires directory semantics and attribute access for this timestamp change.
+            std::fs::OpenOptions::new()
+                .access_mode(0x100)
+                .custom_flags(0x02000000)
+                .open(&ruby)
+                .unwrap()
+        };
+        #[cfg(not(windows))]
+        let directory = std::fs::File::open(&ruby).unwrap();
+        directory.set_modified(later).unwrap();
         assert_eq!(verdict(&ruby, &manifest, false), switches_on_restart);
         std::fs::remove_dir_all(&dir).unwrap();
     }
