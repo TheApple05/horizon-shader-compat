@@ -181,12 +181,19 @@ impl Macros {
     /// A note for each feature `iris.features.required` names that Horizon lacks; a name matches
     /// in any case. Optional features need nothing: no macro is defined for them (see `FEATURES`).
     pub fn feature_notes(properties: &crate::Properties) -> Vec<String> {
+        Self::unsupported_features(properties)
+            .into_iter()
+            .map(|f| format!("the pack requires `{f}`, which is not supported yet"))
+            .collect()
+    }
+
+    pub fn unsupported_features(properties: &crate::Properties) -> Vec<String> {
         properties
             .get("iris.features.required")
             .unwrap_or_default()
             .split_whitespace()
             .filter(|f| !is_feature(f))
-            .map(|f| format!("the pack requires `{f}`, which is not supported yet"))
+            .map(str::to_owned)
             .collect()
     }
 
