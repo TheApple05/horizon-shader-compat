@@ -19,7 +19,7 @@ def main():
     output = args.out.resolve()
     output.mkdir(parents=True, exist_ok=False)
     prefix = "gfx::pack_post::compatibility_tests::"
-    names = ["complete_chain_options_and_failure_recovery", "required_compute_and_fragment_storage_refuse_when_forced_unavailable"]
+    names = ["complete_chain_options_and_failure_recovery", "required_compute_and_fragment_storage_refuse_when_forced_unavailable", "explicit_hdr_handoff_retains_scene_range_and_pack_alpha"]
     listing = subprocess.run([str(binary), "--list"], capture_output=True, text=True, check=True).stdout
     assert all(prefix + name + ": test" in listing for name in names), "the supplied binary does not contain the required controls"
     digest = hashlib.sha256()
@@ -28,15 +28,16 @@ def main():
             digest.update(chunk)
     results = {"schema": 1, "binary_sha256": digest.hexdigest(), "results": []}
     for backend in ["vulkan", "gl"]:
-        for mask in ["", "compute", "fragment-storage"]:
-            case = backend + "-" + (mask or "complete-chain")
+        for control in ["complete-chain", "compute", "fragment-storage", "hdr"]:
+            mask = control if control in ["compute", "fragment-storage"] else ""
+            case = backend + "-" + control
             home = output / case
             home.mkdir()
             env = {key: value for key, value in os.environ.items() if not key.startswith("HORIZON_")}
             env.update(WGPU_BACKEND=backend, HORIZON_SHADER_PACK_WITHOUT=mask, HORIZON_NO_AUDIO="1", HORIZON_TELEMETRY_URL="off", HORIZON_LAUNCHER_NO_SELF_UPDATE="1")
             for key in ["HORIZON_HOME", "HORIZON_LAUNCHER_HOME", "XDG_DATA_HOME", "XDG_CONFIG_HOME"]:
                 env[key] = str(home / key)
-            name = names[1 if mask else 0]
+            name = names[2 if control == "hdr" else 1 if mask else 0]
             command = [str(binary), "--exact", prefix + name, "--ignored", "--nocapture", "--test-threads=1"]
             started = time.monotonic()
             row = {"case": case, "requested_backend": backend, "capability_mask": mask, "log": case + ".log"}

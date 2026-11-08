@@ -7,6 +7,7 @@ pub enum Phase {
     Selection,
     Preprocessing,
     Translation,
+    Adaptation,
     Capability,
     BackendCompilation,
 }

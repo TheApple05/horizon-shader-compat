@@ -193,6 +193,8 @@ pub struct Hdr {
     /// The HDR Lighting setting: off, nothing in the world is lifted, light sources and the
     /// sun included, so the picture is SDR's on the HDR canvas.
     pub look: bool,
+    /// GLSL owns its alpha; it never encodes Horizon's legacy light markers.
+    pub compat_sdr: bool,
     /// Calibration's test picture while it runs.
     pub calibration: Option<Calibration>,
 }
@@ -404,6 +406,7 @@ impl Hdr {
             masks: MASKS,
             lighting: true,
             look: true,
+            compat_sdr: false,
             calibration: None,
         }
     }
@@ -828,7 +831,7 @@ impl Hdr {
         params[..5].copy_from_slice(&[
             paper / 80.0,
             (self.peak / paper).max(1.0),
-            f32::from(u8::from(world && self.look)),
+            f32::from(u8::from(world && self.look && !self.compat_sdr)),
             f32::from(u8::from(self.debug)),
             f32::from(u8::from(pq)),
         ]);
@@ -926,7 +929,7 @@ fn scene_gain(peak: f32, paper_white: f32) -> f32 {
 }
 
 #[cfg(test)]
-mod tests {
+pub(super) mod tests {
     use super::{Hdr, Output, named, pick};
     use wgpu::{SurfaceColorSpaces as S, TextureFormat as F};
 
@@ -1127,7 +1130,7 @@ var<private> params: ReferenceParams;
     }
 
     /// Clears all of `texture` to `color`.
-    pub(super) fn fill(
+    pub(in crate::gfx) fn fill(
         encoder: &mut wgpu::CommandEncoder,
         texture: &wgpu::Texture,
         color: [f64; 4],
@@ -1144,7 +1147,7 @@ var<private> params: ReferenceParams;
 
     /// The first texel of `texture` once `encoder` ran: four half floats, or 10-bit PQ codes
     /// for HDR10.
-    pub(super) fn texel(
+    pub(in crate::gfx) fn texel(
         device: &wgpu::Device,
         queue: &wgpu::Queue,
         mut encoder: wgpu::CommandEncoder,

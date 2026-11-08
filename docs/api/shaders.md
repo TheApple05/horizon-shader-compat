@@ -5,6 +5,11 @@ page is the **Horizon shader API**. A separate clean-room loader reads the exist
 spec, not part of this API); both sit on the same renderer hooks. The earlier implementation was removed on
 2026-10-24; this API was written from scratch after it.
 
+The compatibility fork's experimental [GLSL scene-color handoff](../shader-compat/hdr-contract.md)
+is a separate format contract. It does not change native API versions, lift API 0.2 runtime gates,
+or enable `.hshader` export of behavior that native stages cannot represent. Native HDR-output
+and linear-blending limitations documented below still apply.
+
 ## Overview: what a shader author will be able to do
 
 Write WGSL against documented stages of Horizon's renderer, with typed inputs, options the player can change, a

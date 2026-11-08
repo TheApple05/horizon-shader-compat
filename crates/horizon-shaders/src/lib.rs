@@ -25,6 +25,7 @@ mod config;
 mod core_shader;
 mod custom;
 mod discover;
+mod hdr;
 mod lang;
 mod macros;
 mod options;
@@ -50,6 +51,7 @@ pub use config::{
 pub use core_shader::{BLOCKS, CoreProgram, Glue, SAMPLERS, translate_core};
 pub use custom::{Custom, Val};
 pub use discover::{Found, discover};
+pub use hdr::{HDR_CONTRACT, HdrContract};
 pub use lang::Lang;
 pub use macros::{MC_VERSION, Macros, RENDER_STAGES, render_stage};
 pub use options::{

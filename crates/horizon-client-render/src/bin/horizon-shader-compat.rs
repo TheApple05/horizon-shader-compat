@@ -11,7 +11,7 @@ use std::{
     time::Instant,
 };
 
-const USAGE: &str = "horizon-shader-compat inspect|convert|validate <pack> [--backend vulkan|gl] [--dimension <id>] [--profile <name>] [--option KEY=VALUE] [--cache <directory>] [--out <directory>] [--json]\nhorizon-shader-compat report <report.json>";
+const USAGE: &str = "horizon-shader-compat inspect|convert|validate <pack> [--backend vulkan|gl] [--dimension <id>] [--profile <name>] [--option KEY=VALUE] [--cache <directory>] [--out <directory>] [--hdr] [--json]\nhorizon-shader-compat report <report.json>";
 
 struct Arguments {
     command: String,
@@ -23,6 +23,7 @@ struct Arguments {
     cache: PathBuf,
     out: Option<PathBuf>,
     json: bool,
+    hdr: bool,
 }
 
 fn arguments(args: &[String]) -> Result<Arguments, String> {
@@ -39,9 +40,14 @@ fn arguments(args: &[String]) -> Result<Arguments, String> {
         cache: std::env::temp_dir().join("horizon-shader-compat-cache"),
         out: None,
         json: false,
+        hdr: false,
     };
     let mut rest = args[2..].iter();
     while let Some(flag) = rest.next() {
+        if flag == "--hdr" {
+            out.hdr = true;
+            continue;
+        }
         if flag == "--json" {
             out.json = true;
             continue;
@@ -168,6 +174,7 @@ fn convert(args: &Arguments, pack: &Pack, macros: &Macros, report: &Value) -> Re
         std::process::id()
     ));
     fs::create_dir(&staging).map_err(|e| e.to_string())?;
+    let mut generated_hashes = BTreeMap::new();
     for name in pack.all_files() {
         let textual = ["vsh", "fsh", "gsh", "csh", "glsl", "inc", "tcs", "tes"]
             .contains(&name.rsplit('.').next().unwrap_or_default());
@@ -178,6 +185,7 @@ fn convert(args: &Arguments, pack: &Pack, macros: &Macros, report: &Value) -> Re
         }
         .ok_or_else(|| format!("cannot read {name}"))?;
         write_file(&staging, &format!("shaders/{name}"), &bytes)?;
+        generated_hashes.insert(name.clone(), format!("{:x}", Sha256::digest(&bytes)));
         if ["vsh", "fsh", "gsh", "csh"].contains(&name.rsplit('.').next().unwrap_or_default()) {
             let pp = horizon_shaders::preprocess(pack, &name, macros);
             let bytes = serde_json::to_vec_pretty(&pp).map_err(|e| e.to_string())?;
@@ -185,12 +193,23 @@ fn convert(args: &Arguments, pack: &Pack, macros: &Macros, report: &Value) -> Re
         }
     }
     preserve_notices(&args.input, &staging)?;
+    if args.hdr {
+        write_file(
+            &staging,
+            "generated/horizon-linear-scene-v1.json",
+            &serde_json::to_vec_pretty(&horizon_shaders::HdrContract::fragment())
+                .map_err(|e| e.to_string())?,
+        )?;
+    }
     write_file(
         &staging,
         "compatibility-report.json",
         &serde_json::to_vec_pretty(report).map_err(|e| e.to_string())?,
     )?;
-    write_file(&staging, "SOURCE.json", &serde_json::to_vec_pretty(&json!({"original":fs::canonicalize(&args.input).map_err(|e|e.to_string())?,"source_sha256":report["source_sha256"],"settings_baked":args.options,"runtime":"Horizon GLSL compatibility","native_export":false})).map_err(|e|e.to_string())?)?;
+    write_file(&staging, "SOURCE.json", &serde_json::to_vec_pretty(&json!({"original":fs::canonicalize(&args.input).map_err(|e|e.to_string())?,"source_sha256":report["source_sha256"],"generated_sha256":generated_hashes,"settings_baked":args.options,"runtime":"Horizon GLSL compatibility","native_export":false})).map_err(|e|e.to_string())?)?;
+    if source_hash(pack)? != report["source_sha256"].as_str().unwrap_or_default() {
+        return Err("input changed during conversion; discard the incomplete output and retry with stable files".into());
+    }
     fs::rename(&staging, output).map_err(|e| e.to_string())
 }
 
@@ -294,9 +313,32 @@ fn run(mut args: Arguments) -> Result<u8, String> {
     }
     let original = Pack::open(&args.input).map_err(|e| e.to_string())?;
     let source_hash = source_hash(&original)?;
+    let mut unavailable = None;
+    let mut context = if args.command == "inspect" {
+        None
+    } else {
+        match ValidationContext::open(if args.backend == "vulkan" {
+            wgpu::Backends::VULKAN
+        } else {
+            wgpu::Backends::GL
+        }) {
+            Ok(context) => Some(context),
+            Err(reason) => {
+                unavailable = Some(reason);
+                None
+            }
+        }
+    };
     let available = horizon_shaders::options(&original);
     let mut defaults = Macros::standard();
-    defaults.define_renderer(4);
+    horizon_client_render::gfx::compatibility::define_macros(
+        &mut defaults,
+        4,
+        context
+            .as_ref()
+            .map_or(wgpu::Features::empty(), |c| c.device.features()),
+        args.hdr,
+    );
     let (default_properties, _) = horizon_shaders::read_properties(&original, &mut defaults);
     let profiles = horizon_shaders::Screens::parse(&default_properties, &available).profiles;
     if let Some(profile) = &args.profile {
@@ -316,22 +358,6 @@ fn run(mut args: Arguments) -> Result<u8, String> {
             return Err(format!("invalid value for option {key}"));
         }
     }
-    let mut unavailable = None;
-    let mut context = if args.command == "inspect" {
-        None
-    } else {
-        match ValidationContext::open(if args.backend == "vulkan" {
-            wgpu::Backends::VULKAN
-        } else {
-            wgpu::Backends::GL
-        }) {
-            Ok(context) => Some(context),
-            Err(reason) => {
-                unavailable = Some(reason);
-                None
-            }
-        }
-    };
     let identity = context
         .as_ref()
         .map_or_else(|| "inspection".into(), ValidationContext::identity);
@@ -355,8 +381,7 @@ fn run(mut args: Arguments) -> Result<u8, String> {
             }
         }
     }
-    let mut macros = Macros::standard();
-    macros.define_renderer(4);
+    let mut macros = defaults;
     let (properties, _) = horizon_shaders::read_properties(&pack, &mut macros);
     let folder = horizon_shaders::dimension_folder_named(
         &pack,
@@ -365,7 +390,7 @@ fn run(mut args: Arguments) -> Result<u8, String> {
     );
     let mut report = json!({
         "schema":1,"upstream_base":"42d1e6d7d77ed300fcc4d644ce1444c25356085c","compiler_id":horizon_shaders::COMPILER_ID,
-        "pack":pack.name(),"source_sha256":source_hash,"dimension":args.dimension,"folder":folder,"profile":args.profile,"options":args.options,"requested_backend":args.backend,
+        "pack":pack.name(),"source_sha256":source_hash,"dimension":args.dimension,"folder":folder,"profile":args.profile,"options":args.options,"requested_backend":args.backend,"hdr_handoff":args.hdr,
         "validation_scope":"active programs for the selected dimension and effective options",
         "inventory":{"files":files,"options":available.values().map(|o|json!({"name":o.name,"default":o.default,"values":o.values})).collect::<Vec<_>>(),"profiles":properties.entries.iter().filter(|e|e.key.starts_with("profile.")).map(|e|&e.key).collect::<Vec<_>>(),"required_features":properties.get("iris.features.required")},
         "compatibility":"untested","outcomes":Compatibility::default(),
@@ -396,11 +421,24 @@ fn run(mut args: Arguments) -> Result<u8, String> {
                 .is_some_and(|v| v.trim() == "true"),
         );
         let post = horizon_shaders::load_post(&pack, &folder, &properties, &macros, &inputs);
+        report["hdr_contract"] = json!(post.hdr);
+        if args.hdr && post.hdr.is_none() {
+            return Err("--hdr requires an explicit HDR handoff contract".into());
+        }
         let preprocessing_failed = post.compatibility.programs.iter().any(|p| {
             p.phase == Phase::Preprocessing && p.outcome == horizon_shaders::Outcome::Failed
         });
         let translation_failed = post.compatibility.failure().is_some();
         let built = context.validate(post);
+        report["semantic_changes"] = json!(
+            built
+                .compatibility
+                .programs
+                .iter()
+                .filter(|p| p.phase == Phase::Adaptation
+                    && p.outcome == horizon_shaders::Outcome::Loaded)
+                .collect::<Vec<_>>()
+        );
         report["transformations"] = json!(built.compatibility.programs.iter().filter(|p|p.phase==Phase::Translation && p.outcome==horizon_shaders::Outcome::Loaded).map(|p|json!({"program":p.requested,"operation":"production GLSL lowering and Naga semantic validation","source_map":"original preprocessor file and line map retained"})).collect::<Vec<_>>());
         passed = built.reason.is_none();
         report["outcomes"] = serde_json::to_value(&built.compatibility).unwrap();
