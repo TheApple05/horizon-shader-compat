@@ -20,19 +20,19 @@ const MAX_DEPTH: usize = 10;
 const MAX_CALL_LINES: usize = 64;
 
 /// Where a line came from: an index into [`Preprocessed::files`] and a line number from 1.
-#[derive(Clone, Copy, Debug, Default, PartialEq)]
+#[derive(Clone, Copy, Debug, Default, PartialEq, serde::Serialize, serde::Deserialize)]
 pub struct Origin {
     pub file: u16,
     pub line: u32,
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, serde::Serialize, serde::Deserialize)]
 pub struct Diagnostic {
     pub origin: Origin,
     pub message: String,
 }
 
-#[derive(Clone, Debug, Default)]
+#[derive(Clone, Debug, Default, serde::Serialize, serde::Deserialize)]
 pub struct Preprocessed {
     /// The code, one line per entry of `lines`.
     pub code: String,
@@ -62,6 +62,10 @@ impl Preprocessed {
 
 /// Runs the preprocessor on the stage file `path` of `pack` with `macros` defined.
 pub fn preprocess(pack: &Pack, path: &str, macros: &Macros) -> Preprocessed {
+    crate::cache::preprocess(pack, path, macros)
+}
+
+pub(crate) fn uncached(pack: &Pack, path: &str, macros: &Macros) -> Preprocessed {
     let mut run = Run {
         pack,
         macros: macros.clone(),

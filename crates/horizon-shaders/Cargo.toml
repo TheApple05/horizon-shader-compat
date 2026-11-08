@@ -11,6 +11,8 @@ horizon-core = { path = "../horizon-core" }
 naga = { version = "30.0.1", features = ["glsl-in", "wgsl-in"] }
 half = "2"
 serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+sha2 = "0.10"
 png = "0.18"
 zip = { version = "9.1.3", default-features = false, features = ["deflate"] }
 
@@ -20,3 +22,6 @@ naga = { version = "30.0.1", features = ["glsl-in", "wgsl-in", "spv-out", "hlsl-
 
 [lints]
 workspace = true
+
+[build-dependencies]
+sha2 = "0.10"

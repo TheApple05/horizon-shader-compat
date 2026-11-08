@@ -1907,6 +1907,8 @@ dependencies = [
  "naga",
  "png",
  "serde",
+ "serde_json",
+ "sha2",
  "zip",
 ]
 
