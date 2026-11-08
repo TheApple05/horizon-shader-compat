@@ -296,7 +296,16 @@ impl Game<'_> {
             // A pack is not the game's own code: one that makes the shader compiler (or our
             // translation of it) panic is turned off instead of crashing every world load (#3525).
             let loaded = horizon_client::crash::contain(|| {
-                match Pack::open(&path).map(|p| p.with_chosen(chosen_shader_options(name))) {
+                match Pack::open(&path).map(|p| {
+                    p.with_chosen(chosen_shader_options(name)).with_cache(
+                        Self::options_path().with_file_name("shader-compat-cache"),
+                        format!(
+                            "{};dimension={}",
+                            renderer.shader_compat_identity(),
+                            self.dim.id()
+                        ),
+                    )
+                }) {
                     Ok(pack) => {
                         let mut macros = Macros::standard();
                         renderer.define_pack_macros(&mut macros);
