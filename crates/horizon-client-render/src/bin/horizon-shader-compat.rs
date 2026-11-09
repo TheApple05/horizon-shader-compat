@@ -447,7 +447,7 @@ fn run(mut args: Arguments) -> Result<u8, String> {
         );
         let post = horizon_shaders::load_post(&pack, &folder, &properties, &macros, &inputs);
         report["hdr_contract"] = json!(post.hdr);
-        if args.hdr && post.hdr.is_none() {
+        if args.hdr && post.hdr.is_none() && !pack.exists(horizon_shaders::HDR_CONTRACT) {
             return Err("--hdr requires an explicit HDR handoff contract".into());
         }
         let preprocessing_failed = post.compatibility.programs.iter().any(|p| {
