@@ -34,6 +34,8 @@ def main():
     output.mkdir(parents=True, exist_ok=False)
     metadata = json.loads(subprocess.check_output(["cargo", "metadata", "--locked", "--format-version", "1"], cwd=ROOT))
     manifest = {"schema": 1, "source_revision": revision, "upstream_base": "42d1e6d7d77ed300fcc4d644ce1444c25356085c",
+                "toolchain": {"rustc": subprocess.check_output(["rustc", "-vV"], text=True).strip().splitlines(),
+                              "cargo": subprocess.check_output(["cargo", "--version"], text=True).strip()},
                 "experimental": True, "build_command": "cargo build --locked --profile fast -p horizon-client --bin horizon-client -p horizon-client-lib --bin horizon-ctl -p horizon-client-render --bin horizon-shader-compat",
                 "binaries": [{"file": p.name, "bytes": p.stat().st_size, "sha256": sha256(p)} for p in binaries],
                 "dependencies": [{"name": p["name"], "version": p["version"], "license": p.get("license")} for p in metadata["packages"]],
