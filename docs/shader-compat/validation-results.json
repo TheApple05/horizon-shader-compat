@@ -1,0 +1,487 @@
+{
+  "schema": 1,
+  "recorded_utc": "2026-11-09",
+  "upstream_base": "42d1e6d7d77ed300fcc4d644ce1444c25356085c",
+  "hardware": {
+    "os": "Windows",
+    "gpu": "NVIDIA GeForce RTX 3090",
+    "driver": "616.92",
+    "physical_hdr": "not_run"
+  },
+  "original_fixtures": {
+    "compat-baseline": {
+      "README.md": "647a0c909b0ed6e97dc1b97de26b094a4e803c5097a97ed65ee0ca97902d9c80",
+      "shaders/common.glsl": "d9889f52e2e908487a432477a5dfbf63542cb9badc66b46b01058ce8bde1ac0c",
+      "shaders/composite.fsh": "c1af213f3144169bba04ff038342e4f632c3ef528390f64ee652362e8c70cfb6",
+      "shaders/composite.vsh": "b999929dbff383839fd73870e32fc7f9a80f6a2215c30677c45bf4e04f991f8b",
+      "shaders/final.fsh": "c45d9f93c1a2a0b2d785c4fe7af286590f8a71adda893c1de7c57f99242daea1",
+      "shaders/final.vsh": "b999929dbff383839fd73870e32fc7f9a80f6a2215c30677c45bf4e04f991f8b",
+      "shaders/gbuffers_terrain.fsh": "b3ae7d31e61dad42f0cf2b86c5b9849e8d42fbd37b5c0abb7fdc113d2c776748",
+      "shaders/gbuffers_terrain.vsh": "b6cd9f58fbdeb700824db034eb7bf81c07df8a243886491454a3e1e4132255e8",
+      "shaders/shaders.properties": "b719440fefa4d4a56804c6a19a99c8d0c6ea14ad60891ed18d1b293c29b61106"
+    },
+    "compat-hdr": {
+      "shaders/composite.fsh": "7436d25fbeb297ea9fb5b51489f114d6103fff929b7b9e1d156b707dd5aa663f",
+      "shaders/composite.vsh": "7e35831ebd414b736e9b98fa261b58d5d465665b78efb89522f3f8766a06ba24",
+      "shaders/final.fsh": "05a1ec6b27bbbdc6d684699c45723284492519fed92b234aab48cc4798d9fcaa",
+      "shaders/final.vsh": "7e35831ebd414b736e9b98fa261b58d5d465665b78efb89522f3f8766a06ba24",
+      "shaders/horizon-hdr.properties": "e8915ce1803488edef54bbfe4eb1223727981569d07b453c0eb5448f8638b2fc"
+    }
+  },
+  "explicit_gpu_controls": {
+    "schema": 1,
+    "binary_sha256": "2fcb674fa088b6c1e8859f858f45bb7cc2867abbed5722382889914bde2bcc87",
+    "results": [
+      {
+        "case": "vulkan-complete-chain",
+        "requested_backend": "vulkan",
+        "capability_mask": "",
+        "log": "vulkan-complete-chain.log",
+        "status": "passed",
+        "exit_code": 0,
+        "actual_backend": "Vulkan",
+        "gpu": "NVIDIA GeForce RTX 3090",
+        "driver": "616.92",
+        "elapsed_seconds": 1.718
+      },
+      {
+        "case": "vulkan-compute",
+        "requested_backend": "vulkan",
+        "capability_mask": "compute",
+        "log": "vulkan-compute.log",
+        "status": "passed",
+        "exit_code": 0,
+        "actual_backend": "Vulkan",
+        "gpu": "NVIDIA GeForce RTX 3090",
+        "driver": "616.92",
+        "elapsed_seconds": 0.328
+      },
+      {
+        "case": "vulkan-fragment-storage",
+        "requested_backend": "vulkan",
+        "capability_mask": "fragment-storage",
+        "log": "vulkan-fragment-storage.log",
+        "status": "passed",
+        "exit_code": 0,
+        "actual_backend": "Vulkan",
+        "gpu": "NVIDIA GeForce RTX 3090",
+        "driver": "616.92",
+        "elapsed_seconds": 0.344
+      },
+      {
+        "case": "vulkan-hdr",
+        "requested_backend": "vulkan",
+        "capability_mask": "",
+        "log": "vulkan-hdr.log",
+        "status": "passed",
+        "exit_code": 0,
+        "actual_backend": "Vulkan",
+        "gpu": "NVIDIA GeForce RTX 3090",
+        "driver": "616.92",
+        "elapsed_seconds": 1.61
+      },
+      {
+        "case": "gl-complete-chain",
+        "requested_backend": "gl",
+        "capability_mask": "",
+        "log": "gl-complete-chain.log",
+        "status": "passed",
+        "exit_code": 0,
+        "actual_backend": "Gl",
+        "gpu": "NVIDIA GeForce RTX 3090/PCIe/SSE2",
+        "driver": "4.6.0 NVIDIA 616.92",
+        "elapsed_seconds": 1.75
+      },
+      {
+        "case": "gl-compute",
+        "requested_backend": "gl",
+        "capability_mask": "compute",
+        "log": "gl-compute.log",
+        "status": "passed",
+        "exit_code": 0,
+        "actual_backend": "Gl",
+        "gpu": "NVIDIA GeForce RTX 3090/PCIe/SSE2",
+        "driver": "4.6.0 NVIDIA 616.92",
+        "elapsed_seconds": 0.312
+      },
+      {
+        "case": "gl-fragment-storage",
+        "requested_backend": "gl",
+        "capability_mask": "fragment-storage",
+        "log": "gl-fragment-storage.log",
+        "status": "passed",
+        "exit_code": 0,
+        "actual_backend": "Gl",
+        "gpu": "NVIDIA GeForce RTX 3090/PCIe/SSE2",
+        "driver": "4.6.0 NVIDIA 616.92",
+        "elapsed_seconds": 0.359
+      },
+      {
+        "case": "gl-hdr",
+        "requested_backend": "gl",
+        "capability_mask": "",
+        "log": "gl-hdr.log",
+        "status": "passed",
+        "exit_code": 0,
+        "actual_backend": "Gl",
+        "gpu": "NVIDIA GeForce RTX 3090/PCIe/SSE2",
+        "driver": "4.6.0 NVIDIA 616.92",
+        "elapsed_seconds": 1.563
+      }
+    ],
+    "source_revision": "fd586149fe01285b3f997e393a1df9daa0493c37",
+    "scope": "Original expected-pixel controls; see results.md. No physical HDR display."
+  },
+  "hdr_readbacks": {
+    "vulkan": [
+      "COMPAT_HDR enabled=false raw=[4.0, 1.0, 0.25, 0.375] encoded=[0.9033203, 0.7294922, 0.48095703, 0.375] scrgb=[0.7993164, 0.49951172, 0.19970703, 1.0]",
+      "COMPAT_HDR enabled=true raw=[4.0, 1.0, 0.25, 0.375] encoded=[1.8769531, 1.0, 0.53222656, 0.375] scrgb=[3.9941406, 1.0, 0.24963379, 1.0]",
+      "COMPAT_HDR enabled=false raw=[4.0, 1.0, 0.25, 0.375] encoded=[0.9033203, 0.7294922, 0.48095703, 0.375] scrgb=[0.7993164, 0.49951172, 0.19970703, 1.0]"
+    ],
+    "gl": [
+      "COMPAT_HDR enabled=false raw=[4.0, 1.0, 0.25, 0.375] encoded=[0.9033203, 0.7294922, 0.48095703, 0.375] scrgb=[0.7993164, 0.49951172, 0.19970703, 1.0]",
+      "COMPAT_HDR enabled=true raw=[4.0, 1.0, 0.25, 0.375] encoded=[1.8769531, 1.0, 0.53222656, 0.375] scrgb=[3.9941406, 1.0, 0.24963379, 1.0]",
+      "COMPAT_HDR enabled=false raw=[4.0, 1.0, 0.25, 0.375] encoded=[0.9033203, 0.7294922, 0.48095703, 0.375] scrgb=[0.7993164, 0.49951172, 0.19970703, 1.0]"
+    ]
+  },
+  "live_photon": [
+    {
+      "schema": 1,
+      "source_revision": "d63906da4693bafd6dbaeacb2a328b7bb6e1d40f",
+      "binary_sha256": "f7e87e60739205cb0c87ac7872466e79e2178e620bb0777b2d65ea3e5abd695e",
+      "pack": "Photon-Original-40c8871.zip",
+      "requested_backend": "gl",
+      "status": "passed",
+      "renderer": {
+        "backend": "Gl",
+        "driver": "4.6.0 NVIDIA 616.92",
+        "gpu": "NVIDIA GeForce RTX 3090/PCIe/SSE2",
+        "shader_frame_configuration": "(Bgra8Unorm, false)",
+        "shader_pack_dimension": 0,
+        "shader_pack_kind": "iris",
+        "shader_pack_loading": false,
+        "size": [
+          640,
+          360
+        ],
+        "vendor": "nvidia"
+      },
+      "visual_fidelity": "not_run",
+      "timings": [
+        {
+          "avg_fps": 25.79737659842614,
+          "cpu": {
+            "avg_ms": 43.96184272300906,
+            "max_ms": 896.550048828125,
+            "p50_ms": 16.34309959411621,
+            "p95_ms": 29.93509864807129,
+            "p99_ms": 896.550048828125
+          },
+          "frames": 41,
+          "gpu": {
+            "avg_ms": 5.774236097568419,
+            "max_ms": 7.944191932678223,
+            "p50_ms": 5.755904197692871,
+            "p95_ms": 7.522304058074951,
+            "p99_ms": 7.944191932678223
+          },
+          "max_ms": 255.9654998779297,
+          "p50_ms": 33.27000045776367,
+          "p95_ms": 34.13199996948242,
+          "p99_ms": 255.9654998779297,
+          "seconds": 1.5893088912963866
+        },
+        {
+          "avg_fps": 29.99841301730452,
+          "cpu": {
+            "avg_ms": 15.514713144302368,
+            "max_ms": 21.7372989654541,
+            "p50_ms": 15.394500732421877,
+            "p95_ms": 20.274499893188477,
+            "p99_ms": 21.7372989654541
+          },
+          "frames": 60,
+          "gpu": {
+            "avg_ms": 5.0288127899169925,
+            "max_ms": 7.080959796905518,
+            "p50_ms": 4.702208042144775,
+            "p95_ms": 6.978559970855713,
+            "p99_ms": 7.080959796905518
+          },
+          "max_ms": 34.17259979248047,
+          "p50_ms": 33.318199157714844,
+          "p95_ms": 33.821998596191406,
+          "p99_ms": 34.17259979248047,
+          "seconds": 2.0001058044433595
+        }
+      ],
+      "memory": {
+        "process": {
+          "allocator_commit_mb": 2285.6,
+          "allocator_peak_commit_mb": 2326.9,
+          "resident_mb": 1194.5
+        },
+        "render_distance": 2
+      },
+      "warmup_ticks": 20,
+      "frame_cap": 60,
+      "measurement_conditions": "correctness run; other compilation may be active; not a performance comparison",
+      "archive_sha256": "67edb03f95d102fa376d23c805bf4033790033748bba66b5bbc4ba2f3869c776",
+      "options": "unchanged pack defaults"
+    },
+    {
+      "schema": 1,
+      "source_revision": "d63906da4693bafd6dbaeacb2a328b7bb6e1d40f",
+      "binary_sha256": "f7e87e60739205cb0c87ac7872466e79e2178e620bb0777b2d65ea3e5abd695e",
+      "pack": "Photon-Original-40c8871.zip",
+      "requested_backend": "vulkan",
+      "status": "passed",
+      "renderer": {
+        "backend": "Vulkan",
+        "driver": "NVIDIA 616.92",
+        "gpu": "NVIDIA GeForce RTX 3090",
+        "shader_frame_configuration": "(Bgra8Unorm, false)",
+        "shader_pack_dimension": 0,
+        "shader_pack_kind": "iris",
+        "shader_pack_loading": false,
+        "size": [
+          640,
+          360
+        ],
+        "vendor": "nvidia"
+      },
+      "visual_fidelity": "not_run",
+      "timings": [
+        {
+          "avg_fps": 59.99577322220504,
+          "cpu": {
+            "avg_ms": 3.154480837782224,
+            "max_ms": 6.661499977111816,
+            "p50_ms": 2.79580020904541,
+            "p95_ms": 5.613999843597412,
+            "p99_ms": 6.230500221252441
+          },
+          "frames": 120,
+          "gpu": {
+            "avg_ms": 4.9344170689582825,
+            "max_ms": 7.373824119567871,
+            "p50_ms": 4.55679988861084,
+            "p95_ms": 6.63756799697876,
+            "p99_ms": 7.329792022705078
+          },
+          "max_ms": 17.360700607299805,
+          "p50_ms": 16.656999588012695,
+          "p95_ms": 17.10890007019043,
+          "p99_ms": 17.230701446533203,
+          "seconds": 2.000140902519226
+        },
+        {
+          "avg_fps": 59.252178054603895,
+          "cpu": {
+            "avg_ms": 3.786653769116442,
+            "max_ms": 41.25479888916016,
+            "p50_ms": 3.38319993019104,
+            "p95_ms": 5.026299953460693,
+            "p99_ms": 5.477399826049805
+          },
+          "frames": 119,
+          "gpu": {
+            "avg_ms": 4.808910538168514,
+            "max_ms": 7.02566385269165,
+            "p50_ms": 4.563968181610107,
+            "p95_ms": 6.161407947540283,
+            "p99_ms": 6.768640041351318
+          },
+          "max_ms": 41.31690216064453,
+          "p50_ms": 16.63210105895996,
+          "p95_ms": 17.291101455688477,
+          "p99_ms": 17.597200393676758,
+          "seconds": 2.008364990234375
+        }
+      ],
+      "memory": {
+        "process": {
+          "allocator_commit_mb": 1968.6,
+          "allocator_peak_commit_mb": 2148.8,
+          "resident_mb": 913.2
+        },
+        "render_distance": 2
+      },
+      "warmup_ticks": 20,
+      "frame_cap": 60,
+      "measurement_conditions": "correctness run; other compilation may be active; not a performance comparison",
+      "archive_sha256": "67edb03f95d102fa376d23c805bf4033790033748bba66b5bbc4ba2f3869c776",
+      "options": "unchanged pack defaults"
+    }
+  ],
+  "original_live_interactions": {
+    "source_revision": "81d610376af3e822e447b10a303ab9640149e750",
+    "states": {
+      "the_nether-state": {
+        "backend": "Vulkan",
+        "driver": "NVIDIA 616.92",
+        "gpu": "NVIDIA GeForce RTX 3090",
+        "shader_frame_configuration": "(Bgra8Unorm, false)",
+        "shader_pack_dimension": -1,
+        "shader_pack_kind": "iris",
+        "shader_pack_loading": false
+      },
+      "the_end-state": {
+        "backend": "Vulkan",
+        "driver": "NVIDIA 616.92",
+        "gpu": "NVIDIA GeForce RTX 3090",
+        "shader_frame_configuration": "(Bgra8Unorm, false)",
+        "shader_pack_dimension": 1,
+        "shader_pack_kind": "iris",
+        "shader_pack_loading": false
+      },
+      "overworld-state": {
+        "backend": "Vulkan",
+        "driver": "NVIDIA 616.92",
+        "gpu": "NVIDIA GeForce RTX 3090",
+        "shader_frame_configuration": "(Bgra8Unorm, false)",
+        "shader_pack_dimension": 0,
+        "shader_pack_kind": "iris",
+        "shader_pack_loading": false
+      },
+      "malformed-state": {
+        "backend": "Vulkan",
+        "driver": "NVIDIA 616.92",
+        "gpu": "NVIDIA GeForce RTX 3090",
+        "shader_frame_configuration": "(Bgra8Unorm, false)",
+        "shader_pack_dimension": null,
+        "shader_pack_kind": null,
+        "shader_pack_loading": false
+      },
+      "recovered-state": {
+        "backend": "Vulkan",
+        "driver": "NVIDIA 616.92",
+        "gpu": "NVIDIA GeForce RTX 3090",
+        "shader_frame_configuration": "(Bgra8Unorm, false)",
+        "shader_pack_dimension": 0,
+        "shader_pack_kind": "iris",
+        "shader_pack_loading": false
+      },
+      "hdr-active": {
+        "backend": "Vulkan",
+        "driver": "NVIDIA 616.92",
+        "gpu": "NVIDIA GeForce RTX 3090",
+        "shader_frame_configuration": "(Rgba16Float, true)",
+        "shader_pack_dimension": 0,
+        "shader_pack_kind": "iris",
+        "shader_pack_loading": false
+      },
+      "sdr-on-hdr": {
+        "backend": "Vulkan",
+        "driver": "NVIDIA 616.92",
+        "gpu": "NVIDIA GeForce RTX 3090",
+        "shader_frame_configuration": "(Rgba16Unorm, false)",
+        "shader_pack_dimension": 0,
+        "shader_pack_kind": "iris",
+        "shader_pack_loading": false
+      }
+    },
+    "scene_interactions": "smoke only; day/night, rain/clear, water, transparency, entities, particles, hands and movement; no effect-by-effect visual assertions"
+  },
+  "baseline_frame_identity": {
+    "source_revision": "d63906da4693bafd6dbaeacb2a328b7bb6e1d40f",
+    "upstream_base": "42d1e6d7d77ed300fcc4d644ce1444c25356085c",
+    "sessions": [
+      "vanilla",
+      "golden_hour"
+    ],
+    "scenes": [
+      "day_water",
+      "glass",
+      "nether",
+      "night_lights"
+    ],
+    "decoded_images": 8,
+    "result": "pixel_identical",
+    "adapter_selection": "machine default; not forced independently"
+  },
+  "renderer_suite": {
+    "source_revision": "fd586149fe01285b3f997e393a1df9daa0493c37",
+    "binary_sha256": "2fcb674fa088b6c1e8859f858f45bb7cc2867abbed5722382889914bde2bcc87",
+    "passed": 1830,
+    "failed": 0,
+    "ignored": 67
+  },
+  "readiness": {
+    "status": "passed_with_skips",
+    "source_revision_at_completion": "50a4a38402cfe678b51bdca489466776c1ba191d",
+    "base": "42d1e6d7d77ed300fcc4d644ce1444c25356085c",
+    "duration_seconds": 3533,
+    "python_tests": {
+      "passed": 756,
+      "skipped": 15
+    },
+    "workspace_tests": {
+      "passed": 8512,
+      "failed": 0
+    },
+    "documentation_tests": {
+      "passed": 2
+    },
+    "content_root_tests": {
+      "passed": 26
+    },
+    "launcher_tests": {
+      "passed": 773
+    },
+    "workspace_clippy": "passed",
+    "launcher_clippy": "passed",
+    "rustfmt": "passed",
+    "public_tree": "passed",
+    "full_parity": {
+      "status": "skipped",
+      "cases": 624,
+      "reason": "oracle/prepared harness configuration not set up in this checkout"
+    },
+    "final_converter_checks": {
+      "unit_tests_passed": 3,
+      "renderer_all_targets_clippy": "passed",
+      "touched_crate_rustfmt": "passed",
+      "export_integration": "passed"
+    },
+    "revision_note": "The full readiness run began before the last converter-only change. Final converter unit, export/pipeline, lint and corpus checks independently exercised that change."
+  },
+  "unverified": [
+    "physical HDR display",
+    "other GPUs/drivers",
+    "full third-party visual fidelity",
+    "all real-pack settings/dimensions",
+    "live window resize",
+    "long gameplay soak"
+  ],
+  "pack_removal_recovery": [
+    {
+      "removal_recovery": "passed",
+      "restored_reselection": "passed",
+      "backend": "Gl",
+      "source_revision": "d63906da4693bafd6dbaeacb2a328b7bb6e1d40f",
+      "binary_sha256": "f7e87e60739205cb0c87ac7872466e79e2178e620bb0777b2d65ea3e5abd695e",
+      "scope": "Copied original fixture removed outside shaderpacks; F3+T resource reload; vanilla frames advance; restore and select again using control UI",
+      "automation": "temporary local control-socket sequence; reselected through UI after clearing retained selection"
+    },
+    {
+      "removal_recovery": "passed",
+      "restored_reselection": "passed",
+      "backend": "Vulkan",
+      "source_revision": "d63906da4693bafd6dbaeacb2a328b7bb6e1d40f",
+      "binary_sha256": "f7e87e60739205cb0c87ac7872466e79e2178e620bb0777b2d65ea3e5abd695e",
+      "scope": "Copied original fixture removed outside shaderpacks; F3+T resource reload; vanilla frames advance; restore and select again using control UI",
+      "automation": "temporary local control-socket sequence; reselected through UI after clearing retained selection"
+    }
+  ],
+  "converter_export_regression": {
+    "schema": 1,
+    "source_revision": "50a4a38402cfe678b51bdca489466776c1ba191d",
+    "binary_sha256": "625e9d7cc95a017f0812a6ded40e5741c720a8ab8a7b2327f316a0569bcf3be3",
+    "input_immutable": "passed",
+    "arbitrary_include_option_baking": "passed",
+    "binary_resource_preservation": "passed",
+    "converted_gl_pipeline": "passed",
+    "visual_validation": "not_run"
+  }
+}

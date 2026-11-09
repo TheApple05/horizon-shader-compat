@@ -61,6 +61,9 @@ use the normal renderer/driver compilation path; no persistent GPU handles are s
 
 ## Validation and maintenance
 
+See [recorded results and limits](results.md), [structured validation evidence](validation-results.json)
+and the [unchanged-pack compilation matrix](corpus-results.json).
+
 Start with the original `compat-baseline` pack and independent expected pixels.
 Run the explicit host-GPU tests serially, especially OpenGL on Windows:
 
