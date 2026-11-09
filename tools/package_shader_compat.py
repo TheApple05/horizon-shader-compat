@@ -41,7 +41,7 @@ def main():
                 "dependencies": [{"name": p["name"], "version": p["version"], "license": p.get("license")} for p in metadata["packages"]],
                 "support": "Original GPU fixtures only have rendered assertions. Consult docs/shader-compat results for corpus compilation evidence. Physical HDR is unverified. Prepare your own game resources."}
     package = output / "horizon-shader-compat-windows-x64.zip"
-    with zipfile.ZipFile(package, "w", compression=zipfile.ZIP_DEFLATED, compresslevel=6) as archive:
+    with zipfile.ZipFile(package, "w", compression=zipfile.ZIP_DEFLATED, compresslevel=6, strict_timestamps=False) as archive:
         for binary in binaries:
             archive.write(binary, binary.name)
         for name in ["LICENSE", "THIRD_PARTY_NOTICES.md"]:
