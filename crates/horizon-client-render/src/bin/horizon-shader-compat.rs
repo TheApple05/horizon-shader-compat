@@ -453,8 +453,23 @@ fn run(mut args: Arguments) -> Result<u8, String> {
         let preprocessing_failed = post.compatibility.programs.iter().any(|p| {
             p.phase == Phase::Preprocessing && p.outcome == horizon_shaders::Outcome::Failed
         });
-        let translation_failed = post.compatibility.failure().is_some();
+        let loader_failed = post.compatibility.failure().is_some();
+        let translation_failed = post.compatibility.programs.iter().any(|p| {
+            p.phase == Phase::Translation && p.outcome == horizon_shaders::Outcome::Failed
+        });
         let built = context.validate(post);
+        report["evidence"]["capability"] = json!(if built
+            .compatibility
+            .programs
+            .iter()
+            .any(|p| p.phase == Phase::Capability && p.outcome == horizon_shaders::Outcome::Failed)
+        {
+            "failed"
+        } else if loader_failed {
+            "not_run"
+        } else {
+            "passed"
+        });
         report["semantic_changes"] = json!(
             built
                 .compatibility
@@ -475,12 +490,14 @@ fn run(mut args: Arguments) -> Result<u8, String> {
         } else {
             "passed"
         });
-        report["evidence"]["translation"] = json!(if translation_failed {
+        report["evidence"]["translation"] = json!(if preprocessing_failed {
+            "not_run"
+        } else if translation_failed {
             "failed"
         } else {
             "passed"
         });
-        report["evidence"]["backend_compilation"] = json!(if translation_failed {
+        report["evidence"]["backend_compilation"] = json!(if loader_failed {
             "not_run"
         } else if passed {
             "passed"

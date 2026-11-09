@@ -18,6 +18,7 @@ def main():
     parser.add_argument("--backend", required=True, choices=["vulkan", "gl"])
     parser.add_argument("--pack", type=Path, default=lab.ROOT / "crates/horizon-shaders/tests/packs/compat-baseline")
     parser.add_argument("--out", required=True, type=Path)
+    parser.add_argument("--revision", help="source revision corresponding to the supplied binaries")
     args = parser.parse_args()
     output = args.out.resolve()
     output.mkdir(parents=True, exist_ok=False)
@@ -86,23 +87,32 @@ def main():
         call("wait", "20")
         state = call("status")
         assert state["frames"] > before and state["renderer"]["shader_pack_kind"] == "iris"
+        try:
+            call("gpu-passes", "on")
+        except AssertionError:
+            pass
+        timings = [call("bench", "2"), call("bench", "2")]
+        memory = call("memory")
+        assert call("status")["renderer"]["shader_pack_kind"] == "iris"
         binary = binaries / "horizon-client.exe"
         digest = hashlib.sha256()
         with binary.open("rb") as stream:
             for chunk in iter(lambda: stream.read(1 << 20), b""):
                 digest.update(chunk)
-        result = {"schema": 1, "binary_sha256": digest.hexdigest(), "pack": pack.name,
+        result = {"schema": 1, "source_revision": args.revision, "binary_sha256": digest.hexdigest(), "pack": pack.name,
                   "requested_backend": args.backend, "status": "passed", "renderer": state["renderer"], "visual_fidelity": "not_run"}
+        result.update(timings=timings, memory=memory, warmup_ticks=20, frame_cap=60,
+                      measurement_conditions="correctness run; other compilation may be active; not a performance comparison")
         (output / "result.json").write_text(json.dumps(result, indent=2) + "\n", encoding="utf-8")
         print(json.dumps({"pack": pack.name, "backend": args.backend, "status": "passed", "frames_advanced": state["frames"] - before}))
     finally:
         if game.poll() is None:
             try:
                 call("quit")
-                game.wait(timeout=10)
+                game.wait(timeout=60)
             except (AssertionError, subprocess.TimeoutExpired, json.JSONDecodeError):
                 game.kill()
-                game.wait(timeout=10)
+                game.wait(timeout=60)
         log.close()
 
 
