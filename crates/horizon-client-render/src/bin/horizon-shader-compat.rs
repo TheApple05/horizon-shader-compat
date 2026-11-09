@@ -199,9 +199,17 @@ fn convert(args: &Arguments, pack: &Pack, macros: &Macros, report: &Value) -> Re
     ));
     fs::create_dir(&staging).map_err(|e| e.to_string())?;
     let mut generated_hashes = BTreeMap::new();
+    let mut sources = std::collections::BTreeSet::new();
+    for name in pack.all_files().into_iter().filter(|name| {
+        ["vsh", "fsh", "gsh", "csh", "tcs", "tes"]
+            .contains(&name.rsplit('.').next().unwrap_or_default())
+    }) {
+        sources.extend(horizon_shaders::preprocess(pack, &name, macros).files);
+    }
     for name in pack.all_files() {
-        let textual = ["vsh", "fsh", "gsh", "csh", "glsl", "inc", "tcs", "tes"]
-            .contains(&name.rsplit('.').next().unwrap_or_default());
+        let textual = sources.contains(&name)
+            || ["vsh", "fsh", "gsh", "csh", "glsl", "inc", "tcs", "tes"]
+                .contains(&name.rsplit('.').next().unwrap_or_default());
         let bytes = if textual {
             pack.read_text(&name).map(String::into_bytes)
         } else {
@@ -544,6 +552,58 @@ fn main() -> ExitCode {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn option_baking_reaches_includes_with_arbitrary_extensions() {
+        use std::io::{Cursor, Write};
+        let root = std::env::temp_dir().join(format!("compat-bake-{}", std::process::id()));
+        fs::create_dir(&root).unwrap();
+        let input = root.join("input.zip");
+        let output = root.join("converted");
+        let mut archive = zip::ZipWriter::new(Cursor::new(Vec::new()));
+        for (name, code) in [
+            (
+                "final.fsh",
+                "#version 120\n#include \"shared.h\"\nvoid main(){gl_FragColor=vec4(float(GAIN));}",
+            ),
+            ("shared.h", "#define GAIN 1 // [1 2]\n"),
+        ] {
+            archive
+                .start_file(
+                    format!("shaders/{name}"),
+                    zip::write::SimpleFileOptions::default(),
+                )
+                .unwrap();
+            archive.write_all(code.as_bytes()).unwrap();
+        }
+        let bytes = archive.finish().unwrap().into_inner();
+        fs::write(&input, &bytes).unwrap();
+        let args = arguments(&[
+            "convert".into(),
+            input.to_string_lossy().into_owned(),
+            "--out".into(),
+            output.to_string_lossy().into_owned(),
+            "--option".into(),
+            "GAIN=2".into(),
+        ])
+        .unwrap();
+        let pack = Pack::open(&input)
+            .unwrap()
+            .with_chosen(args.options.clone());
+        convert(
+            &args,
+            &pack,
+            &Macros::standard(),
+            &json!({"source_sha256":source_hash(&pack).unwrap()}),
+        )
+        .unwrap();
+        assert!(
+            fs::read_to_string(output.join("shaders/shared.h"))
+                .unwrap()
+                .contains("#define GAIN 2")
+        );
+        assert_eq!(fs::read(&input).unwrap(), bytes);
+        fs::remove_dir_all(root).unwrap();
+    }
     #[test]
     fn nested_notices_are_preserved_without_unrelated_files() {
         let root = std::env::temp_dir().join(format!("compat-notices-{}", std::process::id()));
