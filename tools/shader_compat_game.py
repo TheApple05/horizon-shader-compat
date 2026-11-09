@@ -4,6 +4,7 @@ import argparse
 import hashlib
 import json
 import os
+import re
 from pathlib import Path
 import shutil
 import subprocess
@@ -20,13 +21,17 @@ def main():
     parser.add_argument("--out", required=True, type=Path)
     parser.add_argument("--revision", help="source revision corresponding to the supplied binaries")
     args = parser.parse_args()
+    if args.revision and not re.fullmatch("[0-9a-f]{40}", args.revision):
+        parser.error("revision must be the full source commit")
+    pack = args.pack.resolve(strict=True)
     output = args.out.resolve()
+    if output == pack or (pack.is_dir() and output.is_relative_to(pack)):
+        parser.error("test output must stay outside the original pack")
     output.mkdir(parents=True, exist_ok=False)
     binaries = output / "bin"
     binaries.mkdir()
     for name in ["horizon-client.exe", "horizon-ctl.exe"]:
         shutil.copy2(args.bin_dir / name, binaries / name)
-    pack = args.pack.resolve(strict=True)
     if pack.is_dir() and not (pack / "shaders").is_dir():
         parser.error("pack folder must contain shaders/")
     target = output / "shaderpacks" / pack.name
