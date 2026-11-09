@@ -81,7 +81,7 @@
       "branch": "main",
       "commit": "b1a241618204ecdb899d5c459a9cee9528399aab",
       "license": "MIT",
-      "description": "Meridian: a shader pack for Horizon (the Rust Minecraft: Java Edition) — shadow-mapped sun, clear water, stars and aurora, PBR, AO, TAA. WGSL, MIT.",
+      "description": "Meridian: a shader pack for Horizon (the Rust Minecraft: Java Edition) \u2014 shadow-mapped sun, clear water, stars and aurora, PBR, AO, TAA. WGSL, MIT.",
       "source_read": false,
       "code_reused": false,
       "root_license_files": [
@@ -300,6 +300,17 @@
         "licenses",
         "renderer.patch"
       ]
+    },
+    {
+      "repository": "IrisShaders/glsl-transformer",
+      "formerly": "douira/glsl-transformer",
+      "commit": "9d26f0f660498ed725ae2077db1c3c637c143921",
+      "license": "AGPL-3.0",
+      "license_path": "LICENSE",
+      "license_sha256": "0d96a4ff68ad6d4b6f1f30f713b18d5184912ba8dd389f86aa7710db079abcb0",
+      "source_read": false,
+      "code_reused": false,
+      "reuse_decision": "Excluded implementation under selected policy. Iris README dependency lead; exact version in the pinned Iris build was not inspected because no implementation or dependency is adopted."
     }
   ],
   "beryl": {
@@ -386,7 +397,7 @@
       "head": "hdr-auto",
       "head_commit": "31c060e41ba1f2f3918349f233ee7c6ae5b59113",
       "merge_commit": "caac31c8df77d65c08ca9a4bad28154e55e33238",
-      "decision": "Already included in the pinned upstream history; do not reapply."
+      "decision": "Not in the pinned baseline. Reviewed and cherry-picked only 9b0a0d56a9e503366da50f5ca83d8a123dad47d2 and 00299919d92b965740ac12667b3e3a2cdb67b176; merge-main ancestor excluded. See upstream-updates.md."
     },
     {
       "number": 12835,
@@ -399,7 +410,7 @@
       "head": "hdr-follow",
       "head_commit": "40d0364accbe75707ca41ed5592a854fa6d88bcd",
       "merge_commit": "22caa7983333fe03cdd2b08f078f7685c1b32f19",
-      "decision": "Track and review complete dependency chain before adoption; no patch imported."
+      "decision": "Reviewed the complete prerequisite chain and cherry-picked only 40d0364accbe75707ca41ed5592a854fa6d88bcd after the two #12746 implementation commits. Native API 0.2 HDR output remains incomplete."
     }
   ],
   "implementation_inputs": [

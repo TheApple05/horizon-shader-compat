@@ -26,6 +26,7 @@ EXEMPT = {
     "lab.py": "defines game_env",
     "parity.py": "runs the harnesses and gives each its own HORIZON_HOME",
     "package_native_client.py": "packs the binaries into an archive",
+    "package_shader_compat.py": "packs checked binaries and source without starting the game",
     "build_release.py": "builds and packs the release",
     "release_train.py": "release bookkeeping",
     "pr_ready.py": "runs cargo checks and parity.py",

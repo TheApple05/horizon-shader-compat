@@ -152,8 +152,7 @@ fn output_path(input: &Path, out: &Path) -> Result<PathBuf, String> {
     let folded_input = input.to_string_lossy().to_lowercase();
     let folded_output = output.to_string_lossy().to_lowercase();
     if folded_output == folded_input
-        || (input.is_dir()
-            && folded_output.starts_with(&(folded_input + std::path::MAIN_SEPARATOR_STR)))
+        || (input.is_dir() && Path::new(&folded_output).starts_with(Path::new(&folded_input)))
     {
         return Err("output overlaps the input pack".into());
     }
@@ -166,6 +165,31 @@ fn write_file(root: &Path, name: &str, bytes: &[u8]) -> Result<(), String> {
     fs::write(path, bytes).map_err(|e| e.to_string())
 }
 
+fn check_cache_path(input: &Path, cache: &Path) -> Result<(), String> {
+    if !input.is_dir() {
+        return Ok(());
+    }
+    let input = fs::canonicalize(input).map_err(|e| e.to_string())?;
+    let mut parent = std::path::absolute(cache).map_err(|e| e.to_string())?;
+    let mut missing = Vec::new();
+    while !parent.exists() {
+        missing.push(parent.file_name().ok_or("invalid cache path")?.to_owned());
+        if !parent.pop() {
+            return Err("invalid cache path".into());
+        }
+    }
+    let mut resolved = fs::canonicalize(parent).map_err(|e| e.to_string())?;
+    for part in missing.into_iter().rev() {
+        resolved.push(part);
+    }
+    let source = input.to_string_lossy().to_lowercase();
+    let cache = resolved.to_string_lossy().to_lowercase();
+    if Path::new(&cache).starts_with(Path::new(&source)) {
+        return Err("cache must stay outside the original pack directory".into());
+    }
+    Ok(())
+}
+
 fn convert(args: &Arguments, pack: &Pack, macros: &Macros, report: &Value) -> Result<(), String> {
     let output = output_path(&args.input, args.out.as_ref().unwrap())?;
     let staging = output.with_file_name(format!(
@@ -175,9 +199,17 @@ fn convert(args: &Arguments, pack: &Pack, macros: &Macros, report: &Value) -> Re
     ));
     fs::create_dir(&staging).map_err(|e| e.to_string())?;
     let mut generated_hashes = BTreeMap::new();
+    let mut sources = std::collections::BTreeSet::new();
+    for name in pack.all_files().into_iter().filter(|name| {
+        ["vsh", "fsh", "gsh", "csh", "tcs", "tes"]
+            .contains(&name.rsplit('.').next().unwrap_or_default())
+    }) {
+        sources.extend(horizon_shaders::preprocess(pack, &name, macros).files);
+    }
     for name in pack.all_files() {
-        let textual = ["vsh", "fsh", "gsh", "csh", "glsl", "inc", "tcs", "tes"]
-            .contains(&name.rsplit('.').next().unwrap_or_default());
+        let textual = sources.contains(&name)
+            || ["vsh", "fsh", "gsh", "csh", "glsl", "inc", "tcs", "tes"]
+                .contains(&name.rsplit('.').next().unwrap_or_default());
         let bytes = if textual {
             pack.read_text(&name).map(String::into_bytes)
         } else {
@@ -311,6 +343,7 @@ fn run(mut args: Arguments) -> Result<u8, String> {
     if let Some(output) = &args.out {
         output_path(&args.input, output)?;
     }
+    check_cache_path(&args.input, &args.cache)?;
     let original = Pack::open(&args.input).map_err(|e| e.to_string())?;
     let source_hash = source_hash(&original)?;
     let mut unavailable = None;
@@ -422,14 +455,29 @@ fn run(mut args: Arguments) -> Result<u8, String> {
         );
         let post = horizon_shaders::load_post(&pack, &folder, &properties, &macros, &inputs);
         report["hdr_contract"] = json!(post.hdr);
-        if args.hdr && post.hdr.is_none() {
+        if args.hdr && post.hdr.is_none() && !pack.exists(horizon_shaders::HDR_CONTRACT) {
             return Err("--hdr requires an explicit HDR handoff contract".into());
         }
         let preprocessing_failed = post.compatibility.programs.iter().any(|p| {
             p.phase == Phase::Preprocessing && p.outcome == horizon_shaders::Outcome::Failed
         });
-        let translation_failed = post.compatibility.failure().is_some();
+        let loader_failed = post.compatibility.failure().is_some();
+        let translation_failed = post.compatibility.programs.iter().any(|p| {
+            p.phase == Phase::Translation && p.outcome == horizon_shaders::Outcome::Failed
+        });
         let built = context.validate(post);
+        report["evidence"]["capability"] = json!(if built
+            .compatibility
+            .programs
+            .iter()
+            .any(|p| p.phase == Phase::Capability && p.outcome == horizon_shaders::Outcome::Failed)
+        {
+            "failed"
+        } else if loader_failed {
+            "not_run"
+        } else {
+            "passed"
+        });
         report["semantic_changes"] = json!(
             built
                 .compatibility
@@ -450,12 +498,14 @@ fn run(mut args: Arguments) -> Result<u8, String> {
         } else {
             "passed"
         });
-        report["evidence"]["translation"] = json!(if translation_failed {
+        report["evidence"]["translation"] = json!(if preprocessing_failed {
+            "not_run"
+        } else if translation_failed {
             "failed"
         } else {
             "passed"
         });
-        report["evidence"]["backend_compilation"] = json!(if translation_failed {
+        report["evidence"]["backend_compilation"] = json!(if loader_failed {
             "not_run"
         } else if passed {
             "passed"
@@ -503,6 +553,58 @@ fn main() -> ExitCode {
 mod tests {
     use super::*;
     #[test]
+    fn option_baking_reaches_includes_with_arbitrary_extensions() {
+        use std::io::{Cursor, Write};
+        let root = std::env::temp_dir().join(format!("compat-bake-{}", std::process::id()));
+        fs::create_dir(&root).unwrap();
+        let input = root.join("input.zip");
+        let output = root.join("converted");
+        let mut archive = zip::ZipWriter::new(Cursor::new(Vec::new()));
+        for (name, code) in [
+            (
+                "final.fsh",
+                "#version 120\n#include \"shared.h\"\nvoid main(){gl_FragColor=vec4(float(GAIN));}",
+            ),
+            ("shared.h", "#define GAIN 1 // [1 2]\n"),
+        ] {
+            archive
+                .start_file(
+                    format!("shaders/{name}"),
+                    zip::write::SimpleFileOptions::default(),
+                )
+                .unwrap();
+            archive.write_all(code.as_bytes()).unwrap();
+        }
+        let bytes = archive.finish().unwrap().into_inner();
+        fs::write(&input, &bytes).unwrap();
+        let args = arguments(&[
+            "convert".into(),
+            input.to_string_lossy().into_owned(),
+            "--out".into(),
+            output.to_string_lossy().into_owned(),
+            "--option".into(),
+            "GAIN=2".into(),
+        ])
+        .unwrap();
+        let pack = Pack::open(&input)
+            .unwrap()
+            .with_chosen(args.options.clone());
+        convert(
+            &args,
+            &pack,
+            &Macros::standard(),
+            &json!({"source_sha256":source_hash(&pack).unwrap()}),
+        )
+        .unwrap();
+        assert!(
+            fs::read_to_string(output.join("shaders/shared.h"))
+                .unwrap()
+                .contains("#define GAIN 2")
+        );
+        assert_eq!(fs::read(&input).unwrap(), bytes);
+        fs::remove_dir_all(root).unwrap();
+    }
+    #[test]
     fn nested_notices_are_preserved_without_unrelated_files() {
         let root = std::env::temp_dir().join(format!("compat-notices-{}", std::process::id()));
         fs::create_dir(&root).unwrap();
@@ -516,6 +618,9 @@ mod tests {
         )
         .unwrap();
         fs::write(input.join("unrelated.txt"), "Not a notice").unwrap();
+        assert!(check_cache_path(&input, &input.join("shaders/cache/new")).is_err());
+        assert!(check_cache_path(&input, &input.join("LICENSES")).is_err());
+        assert!(check_cache_path(&input, &root.join("outside-cache")).is_ok());
         preserve_notices(&input, &output).unwrap();
         assert_eq!(
             fs::read_to_string(output.join("LICENSES/nested/component.txt")).unwrap(),

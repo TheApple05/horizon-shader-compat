@@ -1,3 +1,16 @@
+# Horizon shader compatibility fork
+
+Experimental compatibility work based on official Horizon commit
+`42d1e6d7d77ed300fcc4d644ce1444c25356085c`, preserving upstream history.
+This repository is separate from TheApple05/horizon. Start with the
+[build/converter guide](docs/shader-compat/README.md), [source audit](docs/shader-compat/source-audit.json),
+[upstream revisions](docs/shader-compat/upstream-updates.md) and
+[verified original HDR handoff](docs/shader-compat/hdr-contract.md).
+
+Passing compilation does not establish rendered pack compatibility. Current
+support boundaries and unavailable checks accompany each experimental artifact.
+The upstream project documentation follows below.
+
 <p align="center">
   <img src="docs/media/banner.webp" alt="Horizon: the game you know, rebuilt in Rust" width="100%">
 </p>

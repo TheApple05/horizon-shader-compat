@@ -2462,6 +2462,14 @@ impl PackPost {
         cancel: &std::sync::atomic::AtomicBool,
     ) -> Result<Self, Refused> {
         use std::sync::atomic::Ordering;
+        if adapter.get_info().backend == wgpu::Backend::Gl {
+            return Self::build(device, queue, adapter, post, screen, world, false, cancel).map(
+                |(mut built, _)| {
+                    built.record_compiled();
+                    built
+                },
+            );
+        }
         let spare = (post.clone(), world.clone());
         let (mut built, jobs) =
             Self::build(device, queue, adapter, post, screen, world, true, cancel)?;

@@ -8,6 +8,7 @@ from pathlib import Path
 import re
 import subprocess
 import time
+import lab
 
 
 def main():
@@ -34,9 +35,10 @@ def main():
             home = output / case
             home.mkdir()
             env = {key: value for key, value in os.environ.items() if not key.startswith("HORIZON_")}
-            env.update(WGPU_BACKEND=backend, HORIZON_SHADER_PACK_WITHOUT=mask, HORIZON_NO_AUDIO="1", HORIZON_TELEMETRY_URL="off", HORIZON_LAUNCHER_NO_SELF_UPDATE="1")
+            env.update(WGPU_BACKEND=backend, HORIZON_SHADER_PACK_WITHOUT=mask, HORIZON_TELEMETRY_URL="off")
             for key in ["HORIZON_HOME", "HORIZON_LAUNCHER_HOME", "XDG_DATA_HOME", "XDG_CONFIG_HOME"]:
                 env[key] = str(home / key)
+            env = lab.game_env(env)
             name = names[2 if control == "hdr" else 1 if mask else 0]
             command = [str(binary), "--exact", prefix + name, "--ignored", "--nocapture", "--test-threads=1"]
             started = time.monotonic()

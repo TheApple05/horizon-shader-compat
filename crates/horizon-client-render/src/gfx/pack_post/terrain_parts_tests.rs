@@ -279,7 +279,8 @@ fn a_part_that_fails_to_build_takes_the_other_with_it() {
     ));
     files.push((
         "gbuffers_terrain_cutout.fsh".into(),
-        "#version 120\nvoid main(){}".into(),
+        // Empty fragments can draw depth; use a real mismatch with the default RGBA8 target.
+        "#version 430\nlayout(rgba32f,binding=0) writeonly uniform image2D colorimg0;\nvoid main(){imageStore(colorimg0,ivec2(0),vec4(1.0));}".into(),
     ));
     let Some((got, undrawn)) = strips_of(files, [255; 4]) else {
         return;
@@ -287,7 +288,7 @@ fn a_part_that_fails_to_build_takes_the_other_with_it() {
     assert_eq!(got, [None; 3]);
     let notes = undrawn.expect("the game draws terrain");
     for note in [
-        "gbuffers_terrain_cutout: writes no buffer; skipped",
+        "gbuffers_terrain_cutout:",
         "gbuffers_terrain_solid: the other part of terrain can't draw",
     ] {
         assert!(notes.iter().any(|n| n.starts_with(note)), "{notes:?}");

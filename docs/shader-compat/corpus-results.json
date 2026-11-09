@@ -1,0 +1,329 @@
+{
+  "schema": 1,
+  "source_revision": "50a4a38402cfe678b51bdca489466776c1ba191d",
+  "binary_sha256": "625e9d7cc95a017f0812a6ded40e5741c720a8ab8a7b2327f316a0569bcf3be3",
+  "results": [
+    {
+      "pack": "Photon-Original-40c8871.zip",
+      "archive_sha256": "67edb03f95d102fa376d23c805bf4033790033748bba66b5bbc4ba2f3869c776",
+      "requested_backend": "vulkan",
+      "dimension": "minecraft:overworld",
+      "options": "unchanged pack defaults",
+      "profile": null,
+      "exit_code": 0,
+      "compatibility": "untested",
+      "evidence": {
+        "backend_compilation": "passed",
+        "capability": "passed",
+        "gpu_execution": "not_run",
+        "preprocessing": "passed",
+        "translation": "passed",
+        "visual_validation": "not_run"
+      },
+      "adapter": {
+        "backend": "Vulkan",
+        "device": 8708,
+        "driver": "NVIDIA",
+        "driver_info": "616.92",
+        "name": "NVIDIA GeForce RTX 3090",
+        "vendor": 4318
+      },
+      "compiler_id": "48ea36aa9f5ecc3793fe7b4871f0953f1b47285cc46ff5fc20a2c7271fbe2188",
+      "compilation_ms": 3260.6289,
+      "failures": [],
+      "wall_seconds": 3.656,
+      "settings_sha256": "b3afb6812f5c6cc1e34435ef4259407531db1f2aba742a156138efd5102c3aba"
+    },
+    {
+      "pack": "Photon-Original-40c8871.zip",
+      "archive_sha256": "67edb03f95d102fa376d23c805bf4033790033748bba66b5bbc4ba2f3869c776",
+      "requested_backend": "gl",
+      "dimension": "minecraft:overworld",
+      "options": "unchanged pack defaults",
+      "profile": null,
+      "exit_code": 0,
+      "compatibility": "untested",
+      "evidence": {
+        "backend_compilation": "passed",
+        "capability": "passed",
+        "gpu_execution": "not_run",
+        "preprocessing": "passed",
+        "translation": "passed",
+        "visual_validation": "not_run"
+      },
+      "adapter": {
+        "backend": "Gl",
+        "device": 0,
+        "driver": "",
+        "driver_info": "4.6.0 NVIDIA 616.92",
+        "name": "NVIDIA GeForce RTX 3090/PCIe/SSE2",
+        "vendor": 4318
+      },
+      "compiler_id": "48ea36aa9f5ecc3793fe7b4871f0953f1b47285cc46ff5fc20a2c7271fbe2188",
+      "compilation_ms": 8726.4846,
+      "failures": [],
+      "wall_seconds": 9.25,
+      "settings_sha256": "b3afb6812f5c6cc1e34435ef4259407531db1f2aba742a156138efd5102c3aba"
+    },
+    {
+      "pack": "BSL_v10.1.8.zip",
+      "archive_sha256": "36b0a50ff7918bf10e9422c401d93779f9d0088a26acea975b435243f96930b5",
+      "requested_backend": "vulkan",
+      "dimension": "minecraft:overworld",
+      "options": "unchanged pack defaults",
+      "profile": null,
+      "exit_code": 0,
+      "compatibility": "untested",
+      "evidence": {
+        "backend_compilation": "passed",
+        "capability": "passed",
+        "gpu_execution": "not_run",
+        "preprocessing": "passed",
+        "translation": "passed",
+        "visual_validation": "not_run"
+      },
+      "adapter": {
+        "backend": "Vulkan",
+        "device": 8708,
+        "driver": "NVIDIA",
+        "driver_info": "616.92",
+        "name": "NVIDIA GeForce RTX 3090",
+        "vendor": 4318
+      },
+      "compiler_id": "48ea36aa9f5ecc3793fe7b4871f0953f1b47285cc46ff5fc20a2c7271fbe2188",
+      "compilation_ms": 4256.320900000001,
+      "failures": [],
+      "wall_seconds": 4.609,
+      "settings_sha256": "43da574c79ee1d69f9c2051636b7a1dc50ef3a756754e1ce9a542edb4532046c"
+    },
+    {
+      "pack": "BSL_v10.1.8.zip",
+      "archive_sha256": "36b0a50ff7918bf10e9422c401d93779f9d0088a26acea975b435243f96930b5",
+      "requested_backend": "gl",
+      "dimension": "minecraft:overworld",
+      "options": "unchanged pack defaults",
+      "profile": null,
+      "exit_code": 0,
+      "compatibility": "untested",
+      "evidence": {
+        "backend_compilation": "passed",
+        "capability": "passed",
+        "gpu_execution": "not_run",
+        "preprocessing": "passed",
+        "translation": "passed",
+        "visual_validation": "not_run"
+      },
+      "adapter": {
+        "backend": "Gl",
+        "device": 0,
+        "driver": "",
+        "driver_info": "4.6.0 NVIDIA 616.92",
+        "name": "NVIDIA GeForce RTX 3090/PCIe/SSE2",
+        "vendor": 4318
+      },
+      "compiler_id": "48ea36aa9f5ecc3793fe7b4871f0953f1b47285cc46ff5fc20a2c7271fbe2188",
+      "compilation_ms": 2464.8857,
+      "failures": [],
+      "wall_seconds": 2.828,
+      "settings_sha256": "43da574c79ee1d69f9c2051636b7a1dc50ef3a756754e1ce9a542edb4532046c"
+    },
+    {
+      "pack": "ComplementaryReimagined_r5.9.3.zip",
+      "archive_sha256": "fed6c879e732cf7fc7bc6570ebb1def43235aa7e96f62859fbdbdbfa0b484b38",
+      "requested_backend": "vulkan",
+      "dimension": "minecraft:overworld",
+      "options": "unchanged pack defaults",
+      "profile": null,
+      "exit_code": 0,
+      "compatibility": "untested",
+      "evidence": {
+        "backend_compilation": "passed",
+        "capability": "passed",
+        "gpu_execution": "not_run",
+        "preprocessing": "passed",
+        "translation": "passed",
+        "visual_validation": "not_run"
+      },
+      "adapter": {
+        "backend": "Vulkan",
+        "device": 8708,
+        "driver": "NVIDIA",
+        "driver_info": "616.92",
+        "name": "NVIDIA GeForce RTX 3090",
+        "vendor": 4318
+      },
+      "compiler_id": "48ea36aa9f5ecc3793fe7b4871f0953f1b47285cc46ff5fc20a2c7271fbe2188",
+      "compilation_ms": 5417.8293,
+      "failures": [],
+      "wall_seconds": 5.813,
+      "settings_sha256": "3940669b1fa13b80f81d7efe520aef4fa609a0d199035da02bee7621e7a53dcb"
+    },
+    {
+      "pack": "ComplementaryReimagined_r5.9.3.zip",
+      "archive_sha256": "fed6c879e732cf7fc7bc6570ebb1def43235aa7e96f62859fbdbdbfa0b484b38",
+      "requested_backend": "gl",
+      "dimension": "minecraft:overworld",
+      "options": "unchanged pack defaults",
+      "profile": null,
+      "exit_code": 0,
+      "compatibility": "untested",
+      "evidence": {
+        "backend_compilation": "passed",
+        "capability": "passed",
+        "gpu_execution": "not_run",
+        "preprocessing": "passed",
+        "translation": "passed",
+        "visual_validation": "not_run"
+      },
+      "adapter": {
+        "backend": "Gl",
+        "device": 0,
+        "driver": "",
+        "driver_info": "4.6.0 NVIDIA 616.92",
+        "name": "NVIDIA GeForce RTX 3090/PCIe/SSE2",
+        "vendor": 4318
+      },
+      "compiler_id": "48ea36aa9f5ecc3793fe7b4871f0953f1b47285cc46ff5fc20a2c7271fbe2188",
+      "compilation_ms": 7040.149600000001,
+      "failures": [],
+      "wall_seconds": 7.39,
+      "settings_sha256": "3940669b1fa13b80f81d7efe520aef4fa609a0d199035da02bee7621e7a53dcb"
+    },
+    {
+      "pack": "MakeUp-UltraFast-9.6.zip",
+      "archive_sha256": "71319ea5d0ad114143ef1c334890e315dbf1eeb2318d6bc35f3e5021fb3c8ba8",
+      "requested_backend": "vulkan",
+      "dimension": "minecraft:overworld",
+      "options": "unchanged pack defaults",
+      "profile": null,
+      "exit_code": 0,
+      "compatibility": "untested",
+      "evidence": {
+        "backend_compilation": "passed",
+        "capability": "passed",
+        "gpu_execution": "not_run",
+        "preprocessing": "passed",
+        "translation": "passed",
+        "visual_validation": "not_run"
+      },
+      "adapter": {
+        "backend": "Vulkan",
+        "device": 8708,
+        "driver": "NVIDIA",
+        "driver_info": "616.92",
+        "name": "NVIDIA GeForce RTX 3090",
+        "vendor": 4318
+      },
+      "compiler_id": "48ea36aa9f5ecc3793fe7b4871f0953f1b47285cc46ff5fc20a2c7271fbe2188",
+      "compilation_ms": 3897.6357999999996,
+      "failures": [],
+      "wall_seconds": 4.25,
+      "settings_sha256": "eca8bc3766d6df2289d74fb942eb20d01b401d9c9ae7dea0df03eaf2cc14dd1f"
+    },
+    {
+      "pack": "MakeUp-UltraFast-9.6.zip",
+      "archive_sha256": "71319ea5d0ad114143ef1c334890e315dbf1eeb2318d6bc35f3e5021fb3c8ba8",
+      "requested_backend": "gl",
+      "dimension": "minecraft:overworld",
+      "options": "unchanged pack defaults",
+      "profile": null,
+      "exit_code": 0,
+      "compatibility": "untested",
+      "evidence": {
+        "backend_compilation": "passed",
+        "capability": "passed",
+        "gpu_execution": "not_run",
+        "preprocessing": "passed",
+        "translation": "passed",
+        "visual_validation": "not_run"
+      },
+      "adapter": {
+        "backend": "Gl",
+        "device": 0,
+        "driver": "",
+        "driver_info": "4.6.0 NVIDIA 616.92",
+        "name": "NVIDIA GeForce RTX 3090/PCIe/SSE2",
+        "vendor": 4318
+      },
+      "compiler_id": "48ea36aa9f5ecc3793fe7b4871f0953f1b47285cc46ff5fc20a2c7271fbe2188",
+      "compilation_ms": 1923.7856,
+      "failures": [],
+      "wall_seconds": 4.969,
+      "settings_sha256": "eca8bc3766d6df2289d74fb942eb20d01b401d9c9ae7dea0df03eaf2cc14dd1f"
+    },
+    {
+      "pack": "rethinking-voxels_r0.1-beta9.zip",
+      "archive_sha256": "a8cd9d4338c7d3d1fffecc4525348a31ea3d219ef31382c51d5ddc3b4b0114e1",
+      "requested_backend": "vulkan",
+      "dimension": "minecraft:overworld",
+      "options": "unchanged pack defaults",
+      "profile": null,
+      "exit_code": 1,
+      "compatibility": "incomplete",
+      "evidence": {
+        "backend_compilation": "not_run",
+        "capability": "not_run",
+        "gpu_execution": "not_run",
+        "preprocessing": "passed",
+        "translation": "failed",
+        "visual_validation": "not_run"
+      },
+      "adapter": {
+        "backend": "Vulkan",
+        "device": 8708,
+        "driver": "NVIDIA",
+        "driver_info": "616.92",
+        "name": "NVIDIA GeForce RTX 3090",
+        "vendor": 4318
+      },
+      "compiler_id": "48ea36aa9f5ecc3793fe7b4871f0953f1b47285cc46ff5fc20a2c7271fbe2188",
+      "compilation_ms": 6680.2807,
+      "failures": [
+        {
+          "requested": "final",
+          "phase": "translation",
+          "capability": null
+        }
+      ],
+      "wall_seconds": 7.047,
+      "settings_sha256": "afa26e24c804430233f7924ef3c27e981e3f8bdd059991b8658a269167b642d6"
+    },
+    {
+      "pack": "rethinking-voxels_r0.1-beta9.zip",
+      "archive_sha256": "a8cd9d4338c7d3d1fffecc4525348a31ea3d219ef31382c51d5ddc3b4b0114e1",
+      "requested_backend": "gl",
+      "dimension": "minecraft:overworld",
+      "options": "unchanged pack defaults",
+      "profile": null,
+      "exit_code": 1,
+      "compatibility": "incomplete",
+      "evidence": {
+        "backend_compilation": "not_run",
+        "capability": "not_run",
+        "gpu_execution": "not_run",
+        "preprocessing": "passed",
+        "translation": "failed",
+        "visual_validation": "not_run"
+      },
+      "adapter": {
+        "backend": "Gl",
+        "device": 0,
+        "driver": "",
+        "driver_info": "4.6.0 NVIDIA 616.92",
+        "name": "NVIDIA GeForce RTX 3090/PCIe/SSE2",
+        "vendor": 4318
+      },
+      "compiler_id": "48ea36aa9f5ecc3793fe7b4871f0953f1b47285cc46ff5fc20a2c7271fbe2188",
+      "compilation_ms": 3662.4039000000002,
+      "failures": [
+        {
+          "requested": "final",
+          "phase": "translation",
+          "capability": null
+        }
+      ],
+      "wall_seconds": 4.016,
+      "settings_sha256": "afa26e24c804430233f7924ef3c27e981e3f8bdd059991b8658a269167b642d6"
+    }
+  ]
+}
